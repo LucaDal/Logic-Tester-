@@ -6,20 +6,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class DisplayFrame extends JFrame implements ActionListener {
-    Interface I = new Interface();
+    Interface Interface = new Interface();
     JButton transistor, vcc, select, gnd;
 
     public DisplayFrame() {
         super("Logic Tester");
         setLayout(new BorderLayout());
-        transistor = new JButton("Transistor");
+        transistor = new JButton("Transistor");//TODO: implementig the selection of npn or pnp transistor
         vcc = new JButton("Vcc");
         select = new JButton("Select");
         gnd = new JButton("GND");
         transistor.addActionListener(this);
         vcc.addActionListener(this);
+        select.addActionListener(this);
+        gnd.addActionListener(this);
 
-        //----- inserirsco i bottoni nel Jpanel
+        //----- inserirsco Interface bottoni nel Jpanel
         JPanel j1 = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -44,7 +46,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
         j1.add(gnd, c);
 
         add(j1, BorderLayout.NORTH);
-        add(I, BorderLayout.CENTER);
+        add(Interface, BorderLayout.CENTER);
         pack();
         setResizable(true);
         setLocationRelativeTo(null);
@@ -57,13 +59,13 @@ public class DisplayFrame extends JFrame implements ActionListener {
         System.out.println(e.getActionCommand());
         switch (e.getActionCommand()) {
             case "Transistor":
-                I.addTransistor();
+                Interface.addTransistor();
                 break;
             case "Vcc":
-                I.addVcc();
+                Interface.addVcc();
                 break;
             case "Select":
-                I.select();
+                Interface.select();
                 break;
         }
     }

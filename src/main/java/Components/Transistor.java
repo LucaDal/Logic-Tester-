@@ -11,14 +11,19 @@ import java.io.IOException;
 
 public class Transistor implements MouseListener, Component{
     boolean A = false, B = false, C = false;
+    final String type = "transistor";
     Image img1;
-    int width = 40, height = 40, x,y;
+    int ID;
+    int sizeWidth, sizeHeight, x,y;
     JPanel parent;
 
-    public Transistor(JPanel parent, int x, int y) {
+    public Transistor(JPanel parent,int ID, int x, int y,int sizeWidth,int sizeHeight) {
         this.parent = parent;
-        this.x = x;
-        this.y = y;
+        this.ID = ID;
+        this.x = x - sizeWidth/2;
+        this.y = y - sizeHeight/2;
+        this.sizeWidth = sizeWidth;
+        this.sizeHeight = sizeHeight;
 
         BufferedImage img1b = null;
         try {
@@ -26,7 +31,7 @@ public class Transistor implements MouseListener, Component{
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        img1 = img1b.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        img1 = img1b.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
     }
 
     public void setX(int x){
@@ -36,13 +41,27 @@ public class Transistor implements MouseListener, Component{
         this.y = y;
     }
 
-    public void paint(Graphics g){
-        g.drawImage(img1,x,y,parent);
+    public Point getPosition(){
+        return new Point(x ,y);
     }
 
     @Override
-    public Point position() {
-        return null;
+    public int getSizeWidth() {
+        return sizeWidth;
+    }
+
+    @Override
+    public int getSizeHeight() {
+        return sizeHeight;
+    }
+
+    @Override
+    public int getID() {
+        return ID;
+    }
+
+    public void paint(Graphics g){
+        g.drawImage(img1,x,y,parent);
     }
 
     @Override
