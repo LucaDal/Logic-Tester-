@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 
 public class DisplayFrame extends JFrame implements ActionListener {
     Interface Interface = new Interface();
-    JButton transistor, vcc, select, gnd;
+    JButton transistor, vcc, select, gnd, delete;
 
     public DisplayFrame() {
         super("Logic Tester");
@@ -16,10 +16,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
         vcc = new JButton("Vcc");
         select = new JButton("Select");
         gnd = new JButton("GND");
+        delete = new JButton("Delete");
         transistor.addActionListener(this);
         vcc.addActionListener(this);
         select.addActionListener(this);
         gnd.addActionListener(this);
+        delete.addActionListener(this);
 
         //----- inserirsco Interface bottoni nel Jpanel
         JPanel j1 = new JPanel(new GridBagLayout());
@@ -44,6 +46,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
         c.gridx = 3;
         c.gridy = 0;
         j1.add(gnd, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 0.5;
+        c.gridx = 4;
+        c.gridy = 0;
+        j1.add(delete, c);
 
         add(j1, BorderLayout.NORTH);
         add(Interface, BorderLayout.CENTER);
@@ -66,6 +73,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
                 break;
             case "Select":
                 Interface.select();
+                break;
+            case "Delete":
+                Interface.delete();
+                break;
+            case "GND":
+                Interface.addGnd();
                 break;
         }
     }

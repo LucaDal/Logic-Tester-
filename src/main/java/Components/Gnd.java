@@ -3,20 +3,18 @@ package Components;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class Transistor implements Component {
-    boolean A = false, B = false, C = false;
-    final String type = "transistor";
+public class Gnd implements Component{
+
+    final String type = "gnd";
     Image img;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
 
-    public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
+    public Gnd(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
         this.x = x - sizeWidth / 2;
@@ -26,7 +24,7 @@ public class Transistor implements Component {
 
         BufferedImage imgb = null;
         try {
-            imgb = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npn.png"));
+            imgb = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\gnd.png"));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -64,6 +62,4 @@ public class Transistor implements Component {
     public void paint(Graphics g) {
         g.drawImage(img, x, y, parent);
     }
-
-
 }
