@@ -56,8 +56,8 @@ public class Vcc implements Component {
     }
 
     @Override
-    public boolean contains(int ID) {
-        return false;
+    public Point resetIfCointained(int ID) {
+        return new Point(0,0);
     }
 
     public void setConnection(Point p) {
@@ -86,6 +86,11 @@ public class Vcc implements Component {
     @Override
     public boolean flowsCurrent() {
         return true;
+    }
+
+    @Override
+    public void update() {
+
     }
 
     @Override

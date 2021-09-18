@@ -10,17 +10,18 @@ import java.util.HashMap;
 
 public class Transistor implements Component {
     boolean A = false, B = false, C = false, isOn = false, flowsCurrent = false;
+    final int pinA = 3, pinB = 2, pinC = 9;
     HashMap<String, Integer> connections;
     final String type = "transistor";
-    Image img;
+    Image img,imgAB,imgABC,imgAC,imgB,imgBC,imgC,imgA;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
 
     public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
-        this.x = x - sizeWidth / 2;
-        this.y = y - sizeHeight / 2;
+        this.x = x - sizeWidth / pinB;
+        this.y = y - sizeHeight / pinB;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
         initialize();
@@ -28,19 +29,32 @@ public class Transistor implements Component {
 
     @SuppressWarnings("unchecked")
     private void initialize() {
-        connections = new HashMap() {{
-            put("A", 0);
-            put("B", 0);
-            put("C", 0);
-        }};
-
-        BufferedImage imgb = null;
+        connections = new HashMap();
+        connections.put("A", 0);
+        connections.put("B", 0);
+        connections.put("C", 0);
+        BufferedImage imgb,imgbAB,imgbABC,imgbAC,imgbB,imgbBC,imgbC,imgbA;
+        imgb = imgbAB = imgbABC = imgbAC = imgbB = imgbBC = imgbC = imgbA = null;
         try {
             imgb = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npn.png"));
+            imgbAB = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnAB.png"));
+            imgbABC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnABC.png"));
+            imgbAC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnAC.png"));
+            imgbB = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnB.png"));
+            imgbBC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnBC.png"));
+            imgbC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnC.png"));
+            imgbA = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnA.png"));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
         img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgAB = imgbAB.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgABC = imgbABC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgAC = imgbAC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgB = imgbB.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgBC = imgbBC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgC = imgbC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+        imgA = imgbA.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
     }
 
     public void setX(int x) {
@@ -69,40 +83,47 @@ public class Transistor implements Component {
 
     @Override
     /**
-     * contain() tell if the id given is connected to this transistor
+     * tell if the id given is connected to this transistor
      * if it has it it will put it false
+     * @param ID is the ID of the element which was allocated with some pin
+     * @return a new Point where X indicate the ID of this component, and Y the pin that now is without connection
+     * IF y = 0 then doesn't contain a pin connected to the ID passed
      */
-    public boolean contains(int ID) {
+    public Point resetIfCointained(int ID) {
+        Point IDPin;
         if (connections.get("A") == ID) {
-            A = false;
+            IDPin = new Point(this.ID, pinA);
+            setConnection(IDPin);
             System.out.println("eliminata connessione tra pin A e il componente di ID:" + ID);
-            return true;
+            return IDPin;
         }
         if (connections.get("B") == ID) {
-            B = false;
+            IDPin = new Point(this.ID, pinB);
+            setConnection(IDPin);
             System.out.println("eliminata connessione tra pin B e il componente di ID:" + ID);
-            return true;
+            return IDPin;
         }
         if (connections.get("C") == ID) {
-            C = false;
+            IDPin = new Point(this.ID, pinC);
+            setConnection(IDPin);
             System.out.println("eliminata connessione tra pin C e il componente di ID:" + ID);
-            return true;
+            return IDPin;
         }
-        return false;
+        return new Point(this.ID, 0);
     }
 
     /**
-     * @param p Y coordinate indicate the transistor letter
+     * @param p Y coordinate indicate the transistor pin;
      *          X coordinate indicate the ID which will be connected
      */
     public void setConnection(Point p) {
-        if (p.y == 2) {
+        if (p.y == pinB) {
             connections.put("B", p.x);
         }
-        if (p.y == 3) {
+        if (p.y == pinA) {
             connections.put("A", p.x);
         }
-        if (p.y == 9) {
+        if (p.y == pinC) {
             connections.put("C", p.x);
         }
         System.out.println("Connection setted between: " + ID + ", and: " + p.x);
@@ -122,14 +143,14 @@ public class Transistor implements Component {
         int positionMouseX = ((x - this.x) / 10) + 1;
         int positionMouseY = ((y - this.y) / 10) + 1;
         int numberTarget = positionMouseX * positionMouseY;
-        if (numberTarget == 2) { //B
-                return new Point(ID, 2);//pin B
+        if (numberTarget == pinB) { //B
+            return new Point(ID, pinB);//pin B
         }
-        if (numberTarget == 3) { //pin A
-                return new Point(ID, 3);
+        if (numberTarget == pinA) { //pin A
+            return new Point(ID, pinA);
         }
-        if (numberTarget == 9) { //pin C
-                return new Point(ID, 9);
+        if (numberTarget == pinC) { //pin C
+            return new Point(ID, pinC);
         }
         return new Point(ID, 10);
     }
@@ -139,23 +160,26 @@ public class Transistor implements Component {
         return isOn;
     }
 
-    @Override
-    public void setState(int pin, boolean state) {
-        if (pin == 3) {
-            this.A = state;
-        } else if (pin == 2) {
-            this.B = state;
-        } else if (pin == 9) {
-            this.C = state;
-        }
-
+    public void update(){
         isOn = B;
         if (A && B) {
             C = true;
         } else if (C && B) {
             A = true;
         }
-        System.out.println("pin A: " + A + ", pin B: " + B + ", pin C: " + C);
+        System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
+    }
+
+    @Override
+    public void setState(int pin, boolean state) {
+        if (pin == pinA) {
+            this.A = state;
+        } else if (pin == pinB) {
+            this.B = state;
+        } else if (pin == pinC) {
+            this.C = state;
+        }
+        System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
     }
 
     @Override
@@ -170,8 +194,22 @@ public class Transistor implements Component {
     }
 
     public void paint(Graphics g) {//TODO draw rect where the points are selectable
-        g.drawImage(img, x, y, parent);
+        if (!A && !B && !C)
+            g.drawImage(img, x, y, parent);
+        if (A && !B && !C)
+            g.drawImage(imgA, x, y, parent);
+        if (!A && B && !C)
+            g.drawImage(imgB, x, y, parent);
+        if (A && !B && C)
+            g.drawImage(imgC, x, y, parent);
+        if (A && B && C)
+            g.drawImage(imgABC, x, y, parent);
+        if (A && B && !C)
+            g.drawImage(imgAB, x, y, parent);
+        if (A && !B && C)
+            g.drawImage(imgAC, x, y, parent);
+        if (!A && B && C)
+            g.drawImage(imgBC, x, y, parent);
+
     }
-
-
 }

@@ -88,9 +88,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         if (vccToSet) {
             System.out.println("adding a Vcc plug");
-        }
-        if (vccToSet) {
-            System.out.println("adding a Vcc plug");
             componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 20, 20));
             vccToSet = false;
             IDComponent++;
@@ -101,17 +98,32 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             gndToSet = false;
             IDComponent++;
         }
-        if (deleteIsSelected) {
+        if (deleteIsSelected) { //se l'ID tornato ( ovvero l'oggetto da eliminare è Vcc ) allora è possibile settare il pin to false
             int IdReturned = checkMouseOverComponent(e);
-            if (IdReturned != 0)
-                componentMap.remove(IdReturned);
-            //per i transistor 3 cicli
-            for (Component c : componentMap.values()) {
-                if (c.getType().equalsIgnoreCase("transistor")) {
-                    if (!(c.getIDComponent() == IdReturned)) {
-                        c.contains(IdReturned);//if does it delete the connection
+            if (IdReturned != 0 && IdReturned <= IDComponent) {
+                //per i transistor 3 cicli
+                boolean ReturnedVcc = false;
+                if (componentMap.get(IdReturned).getType().equalsIgnoreCase("vcc")) {
+                    ReturnedVcc = true;
+                }
+                for (Component c : componentMap.values()) {
+                    if (c.getType().equalsIgnoreCase("transistor")) {
+                        if (!(c.getIDComponent() == IdReturned)) { // TODO avendo tre pin devo controllare se tutti e tre i pin sono connessi allo stesso componente
+                            for (int j = 0; j < 3; j++) { // verifico su tutti i pin
+                                Point IDPin = new Point(c.resetIfCointained(IdReturned));//if does it delete the connection
+                                if (IDPin.y != 0) {
+                                    if (ReturnedVcc) {
+                                        c.setState(IDPin.y, false); // da modificare
+                                    } else {//verifico che non ci siano vcc collegati ad A or C
+
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+                ReturnedVcc = false;
+                componentMap.remove(IdReturned);
             }
         }
         if (selectIsSelected) {
@@ -119,7 +131,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             //System.out.println("IDComponent tornato: " + IdReturned);
             if (IdReturned != 0) {
                 if (!setConnection) {
-                    if ((tempConnectionPointFirstCall = componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y < 10) {
+                    if ((tempConnectionPointFirstCall = componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y < 10) {//10 is an invalid pin( valid are 2,3,9)
                         setConnection = true;
                         System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
                     }
@@ -137,17 +149,23 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         repaint();
     }
 
+    public void recursiveCheck(Point component) {
+
+    }
+
     public void update(Point firstComponent, Point secondComponent) {
 
         //.x = ID ; .y = pin
         if (!componentMap.get(firstComponent.x).getType().equalsIgnoreCase("transistor")) {
             componentMap.get(secondComponent.x).setState(secondComponent.y, true);
             componentMap.get(secondComponent.x).setConnection(new Point(firstComponent.x, secondComponent.y));
+            componentMap.get(secondComponent.x).update();
             return;
         }
         if (!componentMap.get(secondComponent.x).getType().equalsIgnoreCase("transistor")) {
             componentMap.get(firstComponent.x).setState(firstComponent.y, true);
             componentMap.get(firstComponent.x).setConnection(new Point(secondComponent.x, firstComponent.y));
+            componentMap.get(firstComponent.x).update();
             return;
         }
         if (componentMap.get(firstComponent.x).getState(firstComponent.y)) {
@@ -157,15 +175,21 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         if (componentMap.get(secondComponent.x).getState(secondComponent.y)) {
             componentMap.get(firstComponent.x).setState(firstComponent.y, true);
         }
-        /*setto i pin per entrambi i transistor*/
+        /*aggiorno i pin per entrambi i transistor(dicendogli con quale ID sono collegati)*/
         componentMap.get(firstComponent.x).setConnection(new Point(secondComponent.x, firstComponent.y));
         componentMap.get(secondComponent.x).setConnection(new Point(firstComponent.x, secondComponent.y));
-
+        //aggiorno gli stati per entrambi
+        componentMap.get(firstComponent.x).update();
+        componentMap.get(secondComponent.x).update();
     }
 
     public void delete() {
         deleteIsSelected = true;
         selectIsSelected = false;
+        selectIsSelected = false;
+        gndToSet = false;
+        vccToSet = false;
+        transistorToSet = false;
     }
 
     /**
@@ -176,6 +200,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         selectIsSelected = false;
         deleteIsSelected = false;
         transistorToSet = true;
+        vccToSet = false;
+        gndToSet = false;
     }
 
     /**
@@ -184,16 +210,23 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     public void addVcc() {
         selectIsSelected = false;
         deleteIsSelected = false;
+        gndToSet = false;
+        transistorToSet = false;
         vccToSet = true;
     }
 
     public void addGnd() {
         selectIsSelected = false;
         deleteIsSelected = false;
+        vccToSet = false;
+        transistorToSet = false;
         gndToSet = true;
     }
 
     public void select() {
+        gndToSet = false;
+        vccToSet = false;
+        transistorToSet = false;
         deleteIsSelected = false;
         selectIsSelected = true;
     }
