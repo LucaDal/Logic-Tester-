@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+
 public class Gnd implements Component{
 
     final String type = "gnd";
@@ -55,8 +56,38 @@ public class Gnd implements Component{
         return ID;
     }
 
-    public void connect() {
+    @Override
+    public boolean contains(int ID) {
+        return false;
+    }
 
+    public void setConnection(Point p) {
+
+    }
+
+    @Override
+    public Point inputTarget(int x, int y) {
+        return new Point (0,0);
+    }
+
+    @Override
+    public boolean getState(int pin) {
+        return true;
+    }
+
+    @Override
+    public void setState(int pin, boolean state) {
+
+    }
+
+    @Override
+    public boolean flowsCurrent() {
+        return true;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     public void paint(Graphics g) {

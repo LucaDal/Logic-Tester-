@@ -5,12 +5,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 
+
 public class Interface extends JPanel implements MouseListener, MouseMotionListener {
-    Dimension size = new Dimension(900, 600);
+    Dimension size = new Dimension(900, 700);
     HashMap<Integer, Component> componentMap = new HashMap<>();
     int IDComponent = 1;
     boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false,
-            selectIsSelected = false;
+            selectIsSelected = false, setConnection = false;
+    Point tempConnectionPointFirstCall = new Point();
+    Point tempConnectionPointSecondCall = new Point();
+
+//  store the first clicked component id and the second one
+
 
     public Interface() {
 
@@ -20,7 +26,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         addMouseMotionListener(this);
     }
 
-
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         for (Component c : componentMap.values()) {
@@ -29,7 +34,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     }
 
     /**
-     * used to evaluate if a coordinate is located between a specified segment
+     * used to evaluate if a coordinate is located between two point
      *
      * @param coordinateMouse     - insert X or Y coordinate from the Mouse
      * @param coordinateComponent - insert X or Y coordinate from the origin of the image to evaluate
@@ -47,13 +52,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
      * This function is used to say if the click of the mouse is over a component or not.
      * if so, it will return the componentIDComponent (the area evaluated is rectangular)
      *
-     * @param mousePosition - the point which indicate the coordinate of the click of the Mouse
-     * @return the IDComponent of the component clicked. if 0 then no component is checked
+     * @param e - the MouseEvent given
+     * @return the IDComponent of the component clicked. if 0 then no component is checkMouseOverComponent()ed
      */
-    public int check(Point mousePosition) {
-        for (Component c : componentMap.values()) {
+    public int checkMouseOverComponent(MouseEvent e) {
 //            System.out.println("Posizione origine elemento: X =" + c.getPosition().x + " Y =" + c.getPosition().y + "size ="+c.getSizeWidth());
-            if (isBetween(mousePosition.x, c.getPosition().x, c.getSizeWidth()) && isBetween(mousePosition.y, c.getPosition().y, c.getSizeHeight())) {
+        for (Component c : componentMap.values()) {
+            if (isBetween(e.getX(), c.getPosition().x, c.getSizeWidth()) && isBetween(e.getY(), c.getPosition().y, c.getSizeHeight())) {
                 return c.getIDComponent();
             }
         }
@@ -62,20 +67,18 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
 
     @Override
-    public void mouseDragged(MouseEvent e) {
+    public void mouseDragged(MouseEvent e) {//TODO moving Components
 /*        System.out.println("X =" + e.getX() + " Y =" + e.getY());
-        int IDComponent =check(new Point(e.getX(),e.getY()));
+        int IDComponent =checkMouseOverComponent()(new Point(e.getX(),e.getY()));
         System.out.println("IDComponent tornato: "+IDComponent);*/
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-//        System.out.println("X =" + e.getX() + " Y =" + e.getY());
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
 
         if (transistorToSet) {
             System.out.println("adding a transistor n :" + IDComponent);
@@ -88,7 +91,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         if (vccToSet) {
             System.out.println("adding a Vcc plug");
-            componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 25, 25));
+            componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 20, 20));
             vccToSet = false;
             IDComponent++;
         }
@@ -99,20 +102,70 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             IDComponent++;
         }
         if (deleteIsSelected) {
-            int IdReturned = check(new Point(e.getX(), e.getY()));
+            int IdReturned = checkMouseOverComponent(e);
             if (IdReturned != 0)
                 componentMap.remove(IdReturned);
+            //per i transistor 3 cicli
+            for (Component c : componentMap.values()) {
+                if (c.getType().equalsIgnoreCase("transistor")) {
+                    if (!(c.getIDComponent() == IdReturned)) {
+                        c.contains(IdReturned);//if does it delete the connection
+                    }
+                }
+            }
         }
         if (selectIsSelected) {
-            int IdReturned = check(new Point(e.getX(), e.getY()));
-            System.out.println("IDComponent tornato: " + IdReturned + '\n');
-        }
+            int IdReturned = checkMouseOverComponent(e);
+            //System.out.println("IDComponent tornato: " + IdReturned);
+            if (IdReturned != 0) {
+                if (!setConnection) {
+                    if ((tempConnectionPointFirstCall = componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y < 10) {
+                        setConnection = true;
+                        System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
+                    }
+                } else {
+                    System.out.println("set connection to false, ritorno: " + (componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y);
+                    if ((tempConnectionPointSecondCall = componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y < 10) {
+                        System.out.println("and component ID: " + tempConnectionPointSecondCall.x + ", pin: " + tempConnectionPointSecondCall.y);
+                        update(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
+                    }
+                    setConnection = false;
+                }
+            }
 
+        }
         repaint();
+    }
+
+    public void update(Point firstComponent, Point secondComponent) {
+
+        //.x = ID ; .y = pin
+        if (!componentMap.get(firstComponent.x).getType().equalsIgnoreCase("transistor")) {
+            componentMap.get(secondComponent.x).setState(secondComponent.y, true);
+            componentMap.get(secondComponent.x).setConnection(new Point(firstComponent.x, secondComponent.y));
+            return;
+        }
+        if (!componentMap.get(secondComponent.x).getType().equalsIgnoreCase("transistor")) {
+            componentMap.get(firstComponent.x).setState(firstComponent.y, true);
+            componentMap.get(firstComponent.x).setConnection(new Point(secondComponent.x, firstComponent.y));
+            return;
+        }
+        if (componentMap.get(firstComponent.x).getState(firstComponent.y)) {
+            componentMap.get(secondComponent.x).setState(secondComponent.y, true);
+
+        }
+        if (componentMap.get(secondComponent.x).getState(secondComponent.y)) {
+            componentMap.get(firstComponent.x).setState(firstComponent.y, true);
+        }
+        /*setto i pin per entrambi i transistor*/
+        componentMap.get(firstComponent.x).setConnection(new Point(secondComponent.x, firstComponent.y));
+        componentMap.get(secondComponent.x).setConnection(new Point(firstComponent.x, secondComponent.y));
+
     }
 
     public void delete() {
         deleteIsSelected = true;
+        selectIsSelected = false;
     }
 
     /**
@@ -141,6 +194,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void select() {
+        deleteIsSelected = false;
         selectIsSelected = true;
     }
 

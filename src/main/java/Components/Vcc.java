@@ -12,6 +12,7 @@ public class Vcc implements Component {
     Image img;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
+    Point connected = new Point();
 
     public Vcc(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -54,8 +55,42 @@ public class Vcc implements Component {
         return ID;
     }
 
-    public void connect() {
+    @Override
+    public boolean contains(int ID) {
+        return false;
+    }
 
+    public void setConnection(Point p) {
+        System.out.println("Vcc collegata al pin");
+    }
+
+    @Override
+    public Point inputTarget(int x, int y) {
+        return new Point(ID, 1);
+    }
+
+    /**
+     *
+     * @return true, because it is Vcc so always true.
+     * @param pin
+     */
+    @Override
+    public boolean getState(int pin) {
+        return true;
+    }
+
+    @Override
+    public void setState(int pin, boolean state) {
+    }
+
+    @Override
+    public boolean flowsCurrent() {
+        return true;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     public void paint(Graphics g) {

@@ -23,7 +23,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
         gnd.addActionListener(this);
         delete.addActionListener(this);
 
-        //----- inserirsco Interface bottoni nel Jpanel
+        /* inserirsco Interface bottoni nel Jpanel */
         JPanel j1 = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -65,21 +65,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         System.out.println(e.getActionCommand());
         switch (e.getActionCommand()) {
-            case "Transistor":
-                Interface.addTransistor();
-                break;
-            case "Vcc":
-                Interface.addVcc();
-                break;
-            case "Select":
-                Interface.select();
-                break;
-            case "Delete":
-                Interface.delete();
-                break;
-            case "GND":
-                Interface.addGnd();
-                break;
+            case "Transistor" -> Interface.addTransistor();
+            case "Vcc" -> Interface.addVcc();
+            case "Select" -> Interface.select();
+            case "Delete" -> Interface.delete();
+            case "GND" -> Interface.addGnd();
         }
     }
 }
