@@ -200,7 +200,7 @@ public class Transistor implements Component {
             g.drawImage(imgA, x, y, parent);
         if (!A && B && !C)
             g.drawImage(imgB, x, y, parent);
-        if (A && !B && C)
+        if (!A && !B && C)
             g.drawImage(imgC, x, y, parent);
         if (A && B && C)
             g.drawImage(imgABC, x, y, parent);

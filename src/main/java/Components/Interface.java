@@ -3,13 +3,15 @@ package Components;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
 public class Interface extends JPanel implements MouseListener, MouseMotionListener {
     Dimension size = new Dimension(900, 700);
     HashMap<Integer, Component> componentMap = new HashMap<>();
-    int IDComponent = 1;
+    HashMap<Lines, ArrayList<Integer>> lines = new HashMap<>();
+    int IDComponent = 1, pinA = 3, pinB = 2, pinC = 9;
     boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false,
             selectIsSelected = false, setConnection = false;
     Point tempConnectionPointFirstCall = new Point();
@@ -28,6 +30,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        for (ArrayList<Integer> l : lines.values()) {
+            g.setColor(Color.black);
+            g.drawLine(l.get(0), l.get(1), l.get(2), l.get(3));
+        }
         for (Component c : componentMap.values()) {
             c.paint(g);
         }
@@ -88,7 +94,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         if (vccToSet) {
             System.out.println("adding a Vcc plug");
-            componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 20, 20));
+            componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 15, 15));
             vccToSet = false;
             IDComponent++;
         }
@@ -144,7 +150,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                     setConnection = false;
                 }
             }
-
         }
         repaint();
     }
@@ -153,7 +158,54 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     }
 
+    public void updateLine(Point firstComponent, Point secondComponent){
+        //inserisco i dati per disegnare
+        ArrayList<Integer> linesCooridnate = new ArrayList();
+
+        if(componentMap.get(firstComponent.x).getType().equalsIgnoreCase("transistor")) {
+            if (firstComponent.y == pinA) {
+                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() - 5 );
+                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() - 25);
+            }
+            if (firstComponent.y == pinB) {
+                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() - 25 );
+                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() - 15);
+            }
+            if (firstComponent.y == pinC) {
+                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() - 5 );
+                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() - 5);
+            }
+        }else{
+            linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() / 2);
+            linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() / 2);
+        }
+
+        if(componentMap.get(secondComponent.x).getType().equalsIgnoreCase("transistor")) {
+            if (secondComponent.y == pinA) {
+                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() - 5 );
+                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() - 25);
+            }
+            if (secondComponent.y == pinB) {
+                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() - 25 );
+                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() - 15);
+            }
+            if (secondComponent.y == pinC) {
+                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() - 5 );
+                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() - 5);
+            }
+        }else{
+            linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() / 2);
+            linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() / 2);
+        }
+
+        lines.put(new Lines(firstComponent.x,firstComponent.y,secondComponent.x,secondComponent.y), linesCooridnate);
+        //linesUpdated = true;
+
+    }
+
     public void update(Point firstComponent, Point secondComponent) {
+
+        updateLine(firstComponent,secondComponent);
 
         //.x = ID ; .y = pin
         if (!componentMap.get(firstComponent.x).getType().equalsIgnoreCase("transistor")) {
@@ -181,6 +233,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         //aggiorno gli stati per entrambi
         componentMap.get(firstComponent.x).update();
         componentMap.get(secondComponent.x).update();
+
+
     }
 
     public void delete() {
@@ -204,9 +258,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         gndToSet = false;
     }
 
-    /**
-     * Add a Vcc plug to the pnanel
-     */
     public void addVcc() {
         selectIsSelected = false;
         deleteIsSelected = false;

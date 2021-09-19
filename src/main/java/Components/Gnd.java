@@ -67,7 +67,7 @@ public class Gnd implements Component{
 
     @Override
     public Point inputTarget(int x, int y) {
-        return new Point (0,0);
+        return new Point (ID,1);
     }
 
     @Override
