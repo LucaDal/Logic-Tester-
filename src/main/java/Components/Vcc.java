@@ -84,13 +84,16 @@ public class Vcc implements Component {
     }
 
     @Override
-    public boolean flowsCurrent() {
+    public boolean isUpdated() {
         return true;
     }
 
     @Override
-    public void update() {
+    public void setUpdated() {
+    }
 
+    @Override
+    public void update() {
     }
 
     @Override

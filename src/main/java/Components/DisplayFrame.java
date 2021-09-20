@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+
+import static javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW;
 
 public class DisplayFrame extends JFrame implements ActionListener {
     Interface Interface = new Interface();
@@ -52,6 +55,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
         c.gridy = 0;
         j1.add(delete, c);
 
+        /*key bindigs*/
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
+
         add(j1, BorderLayout.NORTH);
         add(Interface, BorderLayout.CENTER);
         pack();
@@ -70,6 +77,31 @@ public class DisplayFrame extends JFrame implements ActionListener {
             case "Select" -> Interface.select();
             case "Delete" -> Interface.delete();
             case "GND" -> Interface.addGnd();
+        }
+    }
+
+    private class MyDispatcher implements KeyEventDispatcher {
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                Interface.resetAll();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_1) {
+                Interface.select();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_2) {
+                Interface.addTransistor();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_3) {
+                Interface.addVcc();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_4) {
+                Interface.addGnd();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_5) {
+                Interface.delete();
+            }
+            return false;
         }
     }
 }

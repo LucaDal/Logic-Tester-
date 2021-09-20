@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class Transistor implements Component {
-    boolean A = false, B = false, C = false, isOn = false, flowsCurrent = false;
+    boolean A = false, B = false, C = false, isOn = false, updated = false;
     final int pinA = 3, pinB = 2, pinC = 9;
     HashMap<String, Integer> connections;
     final String type = "transistor";
@@ -83,8 +83,7 @@ public class Transistor implements Component {
 
     @Override
     /**
-     * tell if the id given is connected to this transistor
-     * if it has it it will put it false
+     * tell if the id given is connected to this transistor, if does it disconnect
      * @param ID is the ID of the element which was allocated with some pin
      * @return a new Point where X indicate the ID of this component, and Y the pin that now is without connection
      * IF y = 0 then doesn't contain a pin connected to the ID passed
@@ -155,8 +154,22 @@ public class Transistor implements Component {
         return new Point(ID, 10);
     }
 
+    /**
+     *
+     * @param pin number to get the state of the relative pin; if incorrect it will return the stat e of the transistor
+     * @return true if it is on, false otherwise
+     */
     @Override
     public boolean getState(int pin) {
+        if (pin == pinA){
+            return A;
+        }
+        if (pin == pinB){
+            return B;
+        }
+        if (pin == pinC){
+            return C;
+        }
         return isOn;
     }
 
@@ -179,12 +192,18 @@ public class Transistor implements Component {
         } else if (pin == pinC) {
             this.C = state;
         }
+        updated = true;
         System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
     }
 
     @Override
-    public boolean flowsCurrent() {
-        return this.flowsCurrent;
+    public boolean isUpdated() {
+        return this.updated;
+    }
+
+    @Override
+    public void setUpdated() {
+
     }
 
 

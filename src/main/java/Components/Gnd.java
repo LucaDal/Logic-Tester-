@@ -81,8 +81,13 @@ public class Gnd implements Component{
     }
 
     @Override
-    public boolean flowsCurrent() {
+    public boolean isUpdated() {
         return true;
+    }
+
+    @Override
+    public void setUpdated() {
+
     }
 
     @Override

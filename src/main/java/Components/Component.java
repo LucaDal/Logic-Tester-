@@ -28,6 +28,7 @@ public interface Component {
     Point inputTarget(int x,int y);
     boolean getState(int pin);
     void setState(int pin,boolean state);
-    boolean flowsCurrent();
+    boolean isUpdated();
+    void setUpdated();
     void update();
 }
