@@ -10,7 +10,7 @@ import static javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW;
 
 public class DisplayFrame extends JFrame implements ActionListener {
     Interface Interface = new Interface();
-    JButton transistor, vcc, select, gnd, delete;
+    JButton transistor, vcc, select, gnd, delete,switchButton;
 
     public DisplayFrame() {
         super("Logic Tester");
@@ -20,11 +20,13 @@ public class DisplayFrame extends JFrame implements ActionListener {
         select = new JButton("Select");
         gnd = new JButton("GND");
         delete = new JButton("Delete");
+        switchButton = new JButton("Switch");
         transistor.addActionListener(this);
         vcc.addActionListener(this);
         select.addActionListener(this);
         gnd.addActionListener(this);
         delete.addActionListener(this);
+        switchButton.addActionListener(this);
 
         /* inserirsco Interface bottoni nel Jpanel */
         JPanel j1 = new JPanel(new GridBagLayout());
@@ -54,6 +56,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
         c.gridx = 4;
         c.gridy = 0;
         j1.add(delete, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 0.5;
+        c.gridx = 5;
+        c.gridy = 0;
+        j1.add(switchButton, c);
 
         /*key bindigs*/
         KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
@@ -70,17 +77,17 @@ public class DisplayFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println(e.getActionCommand());
         switch (e.getActionCommand()) {
             case "Transistor" -> Interface.addTransistor();
             case "Vcc" -> Interface.addVcc();
             case "Select" -> Interface.select();
             case "Delete" -> Interface.delete();
             case "GND" -> Interface.addGnd();
+            case "Switch" -> Interface.addSwitch();
         }
     }
 
-    private class MyDispatcher implements KeyEventDispatcher {
+    private class MyDispatcher implements KeyEventDispatcher {//TODO implementing every button
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {

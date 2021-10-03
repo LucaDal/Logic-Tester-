@@ -13,14 +13,23 @@ public interface Component {
      * tell if the id given is connected to this transistor
      * if it has it it will put it false
      * @param ID is the ID of the element which was allocated with some pin
-     * @return a new Point where X indicate the ID of this component, and Y the pin that now is without connection
-     * IF y = 0 then doesn't contain a pin connected to the ID passed
      */
-    Point resetIfCointained(int ID);
-    void setConnection(Point p);
-
+    void resetPinIfContain(Component ID);
+    Boolean isGrounded();
+    void setGrounded(boolean state, int pin);
     /**
-     * given a point it will tell in which place it has benn clicked;
+     * set a connection between this component and  another Component
+     * @param anotherComponent to connect with
+     * @param pin of this transistor to set to
+     * @param state state of the component which connect to
+     */
+    void setConnection(Component anotherComponent,int pin,boolean state);
+
+    void removeConnection();
+
+    Component returnObjName();
+    /**
+     * given a point it will tell in which place it has been clicked;
      * @param x
      * @param y
      * @return retrurn the X: ID of the component clicked and Y: the pin clicked
@@ -28,7 +37,8 @@ public interface Component {
     Point inputTarget(int x,int y);
     boolean getState(int pin);
     void setState(int pin,boolean state);
-    boolean isUpdated();
-    void setUpdated();
+    int getPinFromAnotherObj(Component ObgID);
+    void tellToUpdate(Component fromThisComponent);
+
     void update();
 }

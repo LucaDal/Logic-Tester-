@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 
 public class Gnd implements Component{
@@ -14,6 +15,8 @@ public class Gnd implements Component{
     Image img;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
+    HashMap<Integer, Component> connectedComponent = new HashMap<>();
+    Component toldToUpdate = null;
 
     public Gnd(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -25,7 +28,8 @@ public class Gnd implements Component{
 
         BufferedImage imgb = null;
         try {
-            imgb = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\gnd.png"));
+            String path = System.getProperty("user.dir");
+            imgb = ImageIO.read(new File(path + "\\src\\main\\resources\\gnd.png"));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -57,12 +61,50 @@ public class Gnd implements Component{
     }
 
     @Override
-    public Point resetIfCointained(int ID) {
-        return new Point(0,0);
+    public void resetPinIfContain(Component ID) {
+
     }
 
-    public void setConnection(Point p) {
+    @Override
+    public Boolean isGrounded() {
+        return true;
+    }
 
+    /**
+     * uselles - always true so you wont need it
+     * @param state state
+     * @param pin pin
+     */
+    @Override
+    public void setGrounded(boolean state, int pin) {
+    }
+
+    /**
+     * then set the other component to ground because this class is gnd so..
+     *
+     * @param anotherComponent to connect with
+     * @param pin of this transistor to set to
+     * @param state state of the component which connect to
+     */
+    @Override
+    public void setConnection(Component anotherComponent, int pin, boolean state) {
+        connectedComponent.put(anotherComponent.getIDComponent(), anotherComponent.returnObjName());
+        anotherComponent.setGrounded(true,anotherComponent.getPinFromAnotherObj(this));
+    }
+
+
+
+    @Override
+    public void removeConnection() {
+        for(Component c : connectedComponent.values()){
+            c.resetPinIfContain(this);
+            c.setGrounded(false,c.getPinFromAnotherObj(this));
+        }
+    }
+
+    @Override
+    public Component returnObjName() {
+        return this;
     }
 
     @Override
@@ -72,7 +114,7 @@ public class Gnd implements Component{
 
     @Override
     public boolean getState(int pin) {
-        return true;
+        return false;
     }
 
     @Override
@@ -81,13 +123,13 @@ public class Gnd implements Component{
     }
 
     @Override
-    public boolean isUpdated() {
-        return true;
+    public int getPinFromAnotherObj(Component ObgID) {
+        return 0;
     }
 
     @Override
-    public void setUpdated() {
-
+    public void tellToUpdate(Component fromThisComponent) {
+        this.toldToUpdate = fromThisComponent;
     }
 
     @Override

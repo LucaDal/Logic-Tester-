@@ -6,16 +6,23 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.InputStream;
+import java.net.URL;
+
 
 public class Transistor implements Component {
-    boolean A = false, B = false, C = false, isOn = false, updated = false;
+    boolean A, B, C, isOn, updated, fromAtoC, BisUpdated,
+            AisUpdated, CisUpdated, isGrounded, fromComponentToA,
+            fromComponentToC, AisGrounded, CisGrounded, groundUpdate;
     final int pinA = 3, pinB = 2, pinC = 9;
-    HashMap<String, Integer> connections;
     final String type = "transistor";
-    Image img,imgAB,imgABC,imgAC,imgB,imgBC,imgC,imgA;
+    Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
+    Component transistorConnectedToPinA = null; // predispongo per avere piu transistor in parallelo
+    Component transistorConnectedToPinB = null;
+    Component transistorConnectedToPinC = null;
+    Component toldToUpdate = null;
 
     public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -27,34 +34,33 @@ public class Transistor implements Component {
         initialize();
     }
 
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     private void initialize() {
-        connections = new HashMap();
-        connections.put("A", 0);
-        connections.put("B", 0);
-        connections.put("C", 0);
-        BufferedImage imgb,imgbAB,imgbABC,imgbAC,imgbB,imgbBC,imgbC,imgbA;
-        imgb = imgbAB = imgbABC = imgbAC = imgbB = imgbBC = imgbC = imgbA = null;
+        String path = System.getProperty("user.dir");
+        BufferedImage imgb, imgbAB, imgbABC, imgbAC, imgbB, imgbBC, imgbC, imgbA;
+        A = B = C = isOn = updated = fromAtoC = BisUpdated = AisUpdated = CisUpdated =
+                fromComponentToA = fromComponentToC = AisGrounded = CisGrounded = groundUpdate= false;
         try {
-            imgb = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npn.png"));
-            imgbAB = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnAB.png"));
-            imgbABC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnABC.png"));
-            imgbAC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnAC.png"));
-            imgbB = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnB.png"));
-            imgbBC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnBC.png"));
-            imgbC = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnC.png"));
-            imgbA = ImageIO.read(new File("C:\\Users\\Luca\\Documents\\Projects\\LogicTesterV1\\src\\main\\resources\\npnA.png"));
+            imgb = ImageIO.read(new File((path + "\\src\\main\\resources\\npn.png")));
+            imgbAB = ImageIO.read(new File(path + "\\src\\main\\resources\\npnAB.png"));
+            imgbABC = ImageIO.read(new File(path + "\\src\\main\\resources\\npnABC.png"));
+            imgbAC = ImageIO.read(new File(path + "\\src\\main\\resources\\npnAC.png"));
+            imgbB = ImageIO.read(new File(path + "\\src\\main\\resources\\npnB.png"));
+            imgbBC = ImageIO.read(new File(path + "\\src\\main\\resources\\npnBC.png"));
+            imgbC = ImageIO.read(new File(path + "\\src\\main\\resources\\npnC.png"));
+            imgbA = ImageIO.read(new File(path + "\\src\\main\\resources\\npnA.png"));
+            img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgAB = imgbAB.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgABC = imgbABC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgAC = imgbAC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgB = imgbB.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgBC = imgbBC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgC = imgbC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+            imgA = imgbA.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgAB = imgbAB.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgABC = imgbABC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgAC = imgbAC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgB = imgbB.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgBC = imgbBC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgC = imgbC.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
-        imgA = imgbA.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
+
     }
 
     public void setX(int x) {
@@ -81,51 +87,56 @@ public class Transistor implements Component {
         return ID;
     }
 
-    @Override
     /**
      * tell if the id given is connected to this transistor, if does it disconnect
+     *  and reset the pin following setConection's rules
      * @param ID is the ID of the element which was allocated with some pin
-     * @return a new Point where X indicate the ID of this component, and Y the pin that now is without connection
-     * IF y = 0 then doesn't contain a pin connected to the ID passed
      */
-    public Point resetIfCointained(int ID) {
-        Point IDPin;
-        if (connections.get("A") == ID) {
-            IDPin = new Point(this.ID, pinA);
-            setConnection(IDPin);
+    public void resetPinIfContain(Component ID) {
+        if (ID.getType().equalsIgnoreCase("gnd")) {
+            isGrounded = false;
+        }
+        if (transistorConnectedToPinA == ID) {
+            if (fromComponentToA) {
+                setConnection(null, pinA, false);
+            }else{
+                transistorConnectedToPinA = null;
+            }
             System.out.println("eliminata connessione tra pin A e il componente di ID:" + ID);
-            return IDPin;
         }
-        if (connections.get("B") == ID) {
-            IDPin = new Point(this.ID, pinB);
-            setConnection(IDPin);
+        if (transistorConnectedToPinB == ID) {
+            setConnection(null, pinB, false);
             System.out.println("eliminata connessione tra pin B e il componente di ID:" + ID);
-            return IDPin;
         }
-        if (connections.get("C") == ID) {
-            IDPin = new Point(this.ID, pinC);
-            setConnection(IDPin);
+        if (transistorConnectedToPinC == ID) {
+            if (fromComponentToC) {
+                setConnection(null, pinC, false);
+            }else{
+                transistorConnectedToPinC = null;
+            }
             System.out.println("eliminata connessione tra pin C e il componente di ID:" + ID);
-            return IDPin;
+            transistorConnectedToPinC = null;
+
         }
-        return new Point(this.ID, 0);
     }
 
-    /**
-     * @param p Y coordinate indicate the transistor pin;
-     *          X coordinate indicate the ID which will be connected
-     */
-    public void setConnection(Point p) {
-        if (p.y == pinB) {
-            connections.put("B", p.x);
+
+    @Override
+    public void removeConnection() {
+        if (transistorConnectedToPinA != null) {
+            transistorConnectedToPinA.resetPinIfContain(this);
         }
-        if (p.y == pinA) {
-            connections.put("A", p.x);
+        if (transistorConnectedToPinB != null) {
+            transistorConnectedToPinB.resetPinIfContain(this);
         }
-        if (p.y == pinC) {
-            connections.put("C", p.x);
+        if (transistorConnectedToPinC != null) {
+            transistorConnectedToPinC.resetPinIfContain(this);
         }
-        System.out.println("Connection setted between: " + ID + ", and: " + p.x);
+    }
+
+    @Override
+    public Component returnObjName() {
+        return this;
     }
 
     /**
@@ -138,7 +149,7 @@ public class Transistor implements Component {
      * @return a Point where x indicate the Component ID and Y the letter selected: exaple if table is 3 by 3 and im in
      * the right bottom the it will return 9
      */
-    public Point inputTarget(int x, int y) {
+    public Point inputTarget(int x, int y) { //TODO fix the problem which it has be devided by three
         int positionMouseX = ((x - this.x) / 10) + 1;
         int positionMouseY = ((y - this.y) / 10) + 1;
         int numberTarget = positionMouseX * positionMouseY;
@@ -155,57 +166,268 @@ public class Transistor implements Component {
     }
 
     /**
-     *
      * @param pin number to get the state of the relative pin; if incorrect it will return the stat e of the transistor
      * @return true if it is on, false otherwise
      */
     @Override
     public boolean getState(int pin) {
-        if (pin == pinA){
+        if (pin == pinA) {
             return A;
         }
-        if (pin == pinB){
+        if (pin == pinB) {
             return B;
         }
-        if (pin == pinC){
-            return C;
-        }
-        return isOn;
+        return C;
     }
 
-    public void update(){
-        isOn = B;
-        if (A && B) {
-            C = true;
-        } else if (C && B) {
-            A = true;
+    /**
+     * sett connection between this component and the component c
+     * and if the current comes from the other component (state == true )-> set fromComponentToA/C = ture
+     *
+     * @param c     the transistor id to set connection with
+     * @param pin   pin of this transistor to connect
+     * @param state of the pin of the component which connect to
+     */
+    public void setConnection(Component c, int pin, boolean state) {
+
+        if (pin == pinB) {
+            transistorConnectedToPinB = c;
+            setState(pinB, state);
         }
+        if (pin == pinA) {
+            if (state) {
+                fromComponentToA = true;
+            }
+            setState(pinA, state);
+            transistorConnectedToPinA = c;
+        }
+        if (pin == pinC) {
+            if (state) {
+                fromComponentToC = true;
+            }
+            setState(pinC, state);
+            transistorConnectedToPinC = c;
+        }
+        System.out.println("Connection setted between: " + this + ", and: " + c);
+    }
+
+    @Override
+    public Boolean isGrounded() {
+        return isGrounded;
+
+    }
+
+    /**
+     * updated from gnd class when connected or eliminated
+     *
+     * @param state true = grounded; false otherwise not
+     * @param pin   to connect with - if zero then update just the component to the ground State
+     */
+    @Override
+    public void setGrounded(boolean state, int pin) {//TODO a lot of bug
+        if (pinA == pin) {
+            AisGrounded = state;
+            if (AisGrounded) {
+                setState(pinA, false);
+                return;
+            }
+            if (transistorConnectedToPinA != null) {
+                transistorConnectedToPinA.setGrounded(false, 0);
+            }
+        }
+
+        if (pinC == pin) {
+            CisGrounded = state;
+            if (CisGrounded) {
+                setState(pinC, false);
+                return;
+            }
+            if (transistorConnectedToPinC != null) {
+                transistorConnectedToPinC.setGrounded(false, 0);
+            }
+        }
+
+
+        if (!CisGrounded && !AisGrounded) {
+            this.isGrounded = false;
+        }
+        if (transistorConnectedToPinA != null) {
+            transistorConnectedToPinA.update();
+        }
+        if (transistorConnectedToPinC != null) {
+            transistorConnectedToPinC.update();
+        }
+
+        System.out.println("AisGrounded: " + AisGrounded + ", CisGrounded " + CisGrounded);
+    }
+
+    public void update() {//TODO una volta updatato va in loop, evitare che continui ad updatare il componenete che gli ha detto di farlo
+
+        if (BisUpdated) {
+        }
+
+        if (AisUpdated) { //
+            if (transistorConnectedToPinA != null && transistorConnectedToPinA != toldToUpdate) {
+                transistorConnectedToPinA.tellToUpdate(this);
+                transistorConnectedToPinA.setState(transistorConnectedToPinA.getPinFromAnotherObj(this), A);
+            }
+            AisUpdated = false;
+        }
+        if (CisUpdated) {
+            if (transistorConnectedToPinC != null && transistorConnectedToPinC != toldToUpdate) {
+                transistorConnectedToPinC.tellToUpdate(this);
+                transistorConnectedToPinC.setState(transistorConnectedToPinC.getPinFromAnotherObj(this), C);
+            }
+            CisUpdated = false;
+        }
+        toldToUpdate= null;
         System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
     }
 
+    /**
+     * setState of this transistor's pin with a given state
+     *
+     * @param pin   to update
+     * @param state false or true; state to gave the Pin
+     */
     @Override
     public void setState(int pin, boolean state) {
         if (pin == pinA) {
-            this.A = state;
-        } else if (pin == pinB) {
-            this.B = state;
-        } else if (pin == pinC) {
-            this.C = state;
+            if (A != state) {
+                AisUpdated = true;
+                this.A = state;
+
+                if (!A && fromComponentToA) {
+                    fromComponentToA = false;
+                }
+                if (!A && !fromAtoC && B && C){
+                    AisUpdated = false;
+                    A = true;
+                }
+
+                if (!A && fromAtoC && B && C) {
+                    C = false;
+                    CisUpdated = true;
+                }
+                if (A && B && !C) {
+                    CisUpdated = true;
+                    C = true;
+                    fromAtoC = true;
+                }
+            }
+            if (AisGrounded && B){
+                this.isGrounded = true;
+                if (C){
+                    CisUpdated = true;
+                    C = false;
+                }
+            }
+
+        } else if (pin == pinB) {//pinB
+            if (B != state) {
+                BisUpdated = true;
+                this.B = state;
+                if (state) {//TODO fix sometihing here
+                    if (CisGrounded) {
+                        isGrounded = true;
+                        if (transistorConnectedToPinA != null){
+                            transistorConnectedToPinA.tellToUpdate(this);
+                            transistorConnectedToPinA.setGrounded(true, transistorConnectedToPinA.getPinFromAnotherObj(this));
+                        }
+                        if (A) {
+                            AisUpdated = true;
+                            A = false;
+                        }
+                    } else if (AisGrounded) {
+                        isGrounded = true;
+                        if (transistorConnectedToPinC != null){
+                            transistorConnectedToPinC.tellToUpdate(this);
+                            transistorConnectedToPinC.setGrounded(true, transistorConnectedToPinC.getPinFromAnotherObj(this));
+                        }
+                        if (C) {
+                            CisUpdated = true;
+                            C = false;
+                        }
+                    }else {
+                        setGrounded(false, 0);
+                    }
+                    if (A) {//A e B attivi -> C attivo
+                        fromAtoC = true;
+                        C = true;
+                        CisUpdated = true;
+                    }
+                    if (C) { // B e C attivi -> A attivo
+                        fromAtoC = false;
+                        A = true;
+                        AisUpdated = true;
+                    }
+                }
+                if (!state) { // means off //TODO tell if corrent comes from another component
+                    if (A && fromAtoC){
+                        C = false;
+                        CisUpdated = true;
+                    }
+                    if (C && !fromAtoC){
+                        A = false;
+                        AisUpdated = true;
+                    }
+                }
+            }
+        } else if (pin == pinC) { //pin C
+            if (C != state) {
+                CisUpdated = true;
+                this.C = state;
+
+                if (!C && fromComponentToC) {
+                    fromComponentToC = false;
+                }
+                if (!C && B && fromAtoC && A){
+                    CisUpdated = false;
+                    this.C = true;
+                }
+                if (!C && !fromAtoC && B && A) {
+                    A = false;
+                    AisUpdated = true;
+                }
+                if (C && B && !A) {
+                    A = true;
+                    AisUpdated = true;
+                    fromAtoC = false;
+                }
+            }
+            if (CisGrounded && B){
+                this.isGrounded = true;
+                if (A){
+                    AisUpdated = true;
+                    A = false;
+                }
+            }
         }
-        updated = true;
         System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
+        update();
+    }
+
+    /**
+     * is needed from another transistor to get the pin where this transistor is connected
+     *
+     * @param ObgID to compare with
+     * @return the number of the pin, A = 3, B = 2, C = 9
+     */
+    @Override
+    public int getPinFromAnotherObj(Component ObgID) {
+        if (transistorConnectedToPinA == ObgID) {
+            return pinA;
+        }
+        if (transistorConnectedToPinB == ObgID) {
+            return pinB;
+        }
+        return pinC;
     }
 
     @Override
-    public boolean isUpdated() {
-        return this.updated;
+    public void tellToUpdate(Component fromThisComponent) {
+            this.toldToUpdate = fromThisComponent;
     }
-
-    @Override
-    public void setUpdated() {
-
-    }
-
 
     @Override
     public String getType() {
@@ -229,6 +451,5 @@ public class Transistor implements Component {
             g.drawImage(imgAC, x, y, parent);
         if (!A && B && C)
             g.drawImage(imgBC, x, y, parent);
-
     }
 }

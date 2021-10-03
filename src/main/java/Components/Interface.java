@@ -14,9 +14,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     HashMap<Integer, Component> componentMap = new HashMap<>();
     HashMap<Line, ArrayList<Integer>> lines = new HashMap<>();
 
-    int IDComponent = 1, pinA = 3, pinB = 2, pinC = 9;
+    int IDComponent = 1, pinA = 3, pinB = 2, pinC = 9, IdReturnedTemp;
+    //dont use pin = 1 - 4 - 5 -> are used into returnPosition
     boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false,
-            selectIsSelected = false, setConnection = false;
+            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false;
     Point tempConnectionPointFirstCall = new Point();
     Point tempConnectionPointSecondCall = new Point();
 
@@ -24,7 +25,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
 
     public Interface() {
-
         setPreferredSize(size);
         setFocusable(true);
         addMouseListener(this);
@@ -56,7 +56,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     /**
      * This function is used to say if the click of the mouse is over a component or not.
-     * if so, it will return the componentIDComponent (the area evaluated is rectangular)
+     * if so, it will return the IDComponent (the area evaluated is a square)
      *
      * @param e - the MouseEvent given
      * @return the IDComponent of the component clicked. if 0 then no component is checkMouseOverComponent()ed
@@ -74,13 +74,26 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     @Override
     public void mouseDragged(MouseEvent e) {//TODO moving Components
-/*        System.out.println("X =" + e.getX() + " Y =" + e.getY());
-        int IDComponent =checkMouseOverComponent()(new Point(e.getX(),e.getY()));
-        System.out.println("IDComponent tornato: "+IDComponent);*/
+        mouseDragged = true;
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
+    }
+
+    /**
+     * will remove a connection between a component and the IDComponent to eliminate
+     * @param IDComponent to delete
+     */
+    private void deleteLine(int IDComponent) {
+        Iterator<Map.Entry<Line, ArrayList<Integer>>> iter = lines.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Line, ArrayList<Integer>> entry = iter.next();
+            Line key = entry.getKey();
+            if (key.contain(IDComponent)) {
+                iter.remove();
+            }
+        }
     }
 
     @Override
@@ -89,227 +102,252 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         if (transistorToSet) {
             System.out.println("adding a transistor n :" + IDComponent);
             componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30));
-            transistorToSet = false;
+            //transistorToSet = false;
             IDComponent++;
         }
         if (vccToSet) {
             System.out.println("adding a Vcc plug");
             componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 15, 15));
-            vccToSet = false;
+            // vccToSet = false;
             IDComponent++;
         }
         if (gndToSet) {
             System.out.println("adding a gnd plug");
             componentMap.put(IDComponent, new Gnd(this, IDComponent, e.getX(), e.getY(), 25, 25));
-            gndToSet = false;
+            // gndToSet = false;
+            IDComponent++;
+        }
+        if (switchIsSelected){
+            System.out.println("adding a switch");
+            componentMap.put(IDComponent, new Switch(this, IDComponent, e.getX(), e.getY(), 22, 28));
+            // gndToSet = false;
             IDComponent++;
         }
         if (deleteIsSelected) { //se l'ID tornato ( ovvero l'oggetto da eliminare è Vcc ) allora è possibile settare il pin to false
             int IdReturned = checkMouseOverComponent(e);
             if (IdReturned != 0 && IdReturned <= IDComponent) {
-                boolean ReturnedVcc = false;
-                if (componentMap.get(IdReturned).getType().equalsIgnoreCase("vcc")) {
-                    ReturnedVcc = true;
-                }
-                /* delete lines between components */
-                Iterator<Map.Entry<Line, ArrayList<Integer>>> iter = lines.entrySet().iterator();
-                while (iter.hasNext()) {
-                    Map.Entry<Line, ArrayList<Integer>> entry = iter.next();
-                    Line key = entry.getKey();
-                    if (key.contain(IdReturned)) {
-                        iter.remove();
-                    }
-                }
-                for (Component c : componentMap.values()) {
-                    //eseguo il ciclo per ogni tranistor
-                    if (c.getType().equalsIgnoreCase("transistor")) {
-                        /*deleting the lines*/
-                        if (!(c.getIDComponent() == IdReturned)) { // TODO avendo tre pin devo controllare se tutti e tre i pin sono connessi allo stesso componente
-                            for (int j = 0; j < 3; j++) { // verifico su tutti i pin
-                                Point IDPin = new Point(c.resetIfCointained(IdReturned));//if does it delete the connection
-                                if (IDPin.y != 0) {
-                                    if (ReturnedVcc) {
-                                        c.setState(IDPin.y, false); // da modificare
-                                        c.update();
-                                    } else {//verifico che non ci siano vcc collegati ad A or C
-                                        updateState(); // dopo aver eliminato tutto
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                ReturnedVcc = false;
+                deleteLine(IdReturned);
+
+                componentMap.get(IdReturned).removeConnection();
                 componentMap.remove(IdReturned);
             }
         }
-        if (selectIsSelected) {
+        if (selectIsSelected) { //TODO implementing switch, and it's click
             int IdReturned = checkMouseOverComponent(e);
             //System.out.println("IDComponent tornato: " + IdReturned);
             if (IdReturned != 0) {
-                if (!setConnection) {
-                    if ((tempConnectionPointFirstCall = componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y < 10) {//10 is an invalid pin( valid are 2,3,9)
+                Component componentReturned = componentMap.get(IdReturned);
+                if (componentReturned.getType().equalsIgnoreCase("switch") && componentReturned.inputTarget(e.getX(),e.getY()).y == 0){
+                        componentReturned.setState(1,!componentReturned.getState(0));
+                }else if (!setConnection) {
+                    IdReturnedTemp = IdReturned;
+                    if ((tempConnectionPointFirstCall = componentReturned.inputTarget(e.getX(), e.getY())).y < 10) {//10 is an invalid pin( valid are 2,3,9)
                         setConnection = true;
                         System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
                     }
                 } else {
-                    System.out.println("set connection to false, ritorno: " + (componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y);
-                    if ((tempConnectionPointSecondCall = componentMap.get(IdReturned).inputTarget(e.getX(), e.getY())).y < 10) {
-                        System.out.println("and component ID: " + tempConnectionPointSecondCall.x + ", pin: " + tempConnectionPointSecondCall.y);
-                        update(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
+                    if (IdReturnedTemp != IdReturned) {
+                        if ((tempConnectionPointSecondCall = componentReturned.inputTarget(e.getX(), e.getY())).y < 10) {
+                            System.out.println("and component ID: " + tempConnectionPointSecondCall.x + ", pin: " + tempConnectionPointSecondCall.y);
+                            connect(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
+                        }
                     }
                     setConnection = false;
                 }
-                updateState();
+            } else {//se il secondo click non è un componente
+                if (setConnection) {
+                    setConnection = false;
+                }
             }
         }
+
         repaint();
     }
 
-    private void updateState() {
-
-        for(Component c : componentMap.values()){
-
-        }
-
-    }
+    /**
+     * used with returnPosition() just to avoid duplicate coide if i've to change line origin position to some component
+     *
+     * it is duplicate because this function will add the two coordinate into an array filled with 4 integer(1.x,1.y,2.x,2.y)
+     * and then are insert into a class Line (which include the 4 coordinates), and putted into the HashMap (Lines)
+     *
+     * @param firstIDComponentPin a point where .X is the component ID and .y is the pin that is going to be paired with
+     * @param secondIDComponentPin same as firstIDComponentPin
+     */
     @SuppressWarnings("unchecked")
-    public void updateLine(Point firstComponent, Point secondComponent) {
+    //dava problemi inutili...non ricordo quali però :c... ma inutili tranquillo tipo "Raw use of parameterized class 'ArrayList'"
+    public void updateLine(Point firstIDComponentPin, Point secondIDComponentPin) {
         //inserisco i dati per disegnare
         ArrayList<Integer> linesCooridnate = new <Integer>ArrayList();
+        Component firstComponent = componentMap.get(firstIDComponentPin.x).returnObjName();
+        Component secondComponent = componentMap.get(secondIDComponentPin.x).returnObjName();
+        Point positionTemp;
+                                         /*FIRST COMPONENT*/
+        if (firstComponent.getType().equalsIgnoreCase("transistor")) {
+            positionTemp = returnPosition(firstIDComponentPin.y,firstComponent);
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+        else if (firstComponent.getType().equalsIgnoreCase("vcc")){
+            positionTemp = returnPosition(4,firstComponent);//pin 4 just because it identify vcc into this function
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+        else if(firstComponent.getType().equalsIgnoreCase("gnd")){
+            positionTemp = returnPosition(5,firstComponent);//pin 4 just because it identify vcc into this function
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+        else if(firstComponent.getType().equalsIgnoreCase("switch")){
+            positionTemp = returnPosition(1,firstComponent);//pin 4 just because it identify vcc into this function
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+                                        /*SECOND COMPONENT*/
 
-        if (componentMap.get(firstComponent.x).getType().equalsIgnoreCase("transistor")) {
-            if (firstComponent.y == pinA) {
-                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() - 5);
-                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() - 25);
-            }
-            if (firstComponent.y == pinB) {
-                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() - 25);
-                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() - 15);
-            }
-            if (firstComponent.y == pinC) {
-                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() - 5);
-                linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() - 5);
-            }
-        } else {
-            linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().x + componentMap.get(firstComponent.x).getSizeWidth() / 2);
-            linesCooridnate.add(componentMap.get(firstComponent.x).getPosition().y + componentMap.get(firstComponent.x).getSizeHeight() / 2);
+        if (secondComponent.getType().equalsIgnoreCase("transistor")) {
+            positionTemp = returnPosition(secondIDComponentPin.y,secondComponent);
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+        else if (secondComponent.getType().equalsIgnoreCase("vcc")){
+            positionTemp = returnPosition(1,secondComponent);
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+        else if(secondComponent.getType().equalsIgnoreCase("gnd")){
+            positionTemp = returnPosition(5,secondComponent);
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
+        }
+        else if(secondComponent.getType().equalsIgnoreCase("switch")){
+            positionTemp = returnPosition(1,secondComponent);
+            linesCooridnate.add(positionTemp.x);
+            linesCooridnate.add(positionTemp.y);
         }
 
-        if (componentMap.get(secondComponent.x).getType().equalsIgnoreCase("transistor")) {
-            if (secondComponent.y == pinA) {
-                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() - 5);
-                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() - 25);
-            }
-            if (secondComponent.y == pinB) {
-                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() - 25);
-                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() - 15);
-            }
-            if (secondComponent.y == pinC) {
-                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() - 5);
-                linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() - 5);
-            }
-        } else {
-            linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().x + componentMap.get(secondComponent.x).getSizeWidth() / 2);
-            linesCooridnate.add(componentMap.get(secondComponent.x).getPosition().y + componentMap.get(secondComponent.x).getSizeHeight() / 2);
-        }
-        Line coordinates = new Line(firstComponent.x, firstComponent.y, secondComponent.x, secondComponent.y);
+        Line coordinates = new Line(firstIDComponentPin.x, firstIDComponentPin.y, secondIDComponentPin.x, secondIDComponentPin.y);
         lines.put(coordinates, linesCooridnate);
         //linesUpdated = true;
-
+    }
+    /**
+     * does connect two component checking the type
+     *
+     * for not reaping code i've used:
+     * pin 1 if Vcc
+     * pin 4 if switch
+     * pin (every number exept pin numbers) if gnd
+     * @param pin pin 1 if Vcc; pin 4 if switch; pin (every number exeption for 1-2-3-4--9) if gnd
+     * @param c component to get info about
+     */
+    private Point returnPosition(int pin,Component c){
+        Point position = new Point();
+        if (pin == pinA) {
+            position.x = c.getPosition().x + c.getSizeWidth() - 5;
+            position.y = c.getPosition().y + c.getSizeHeight() - 25;
+            return position;
+        }
+        if (pin == pinB) {
+            position.x = c.getPosition().x + c.getSizeWidth() - 25;
+            position.y = c.getPosition().y + c.getSizeHeight() - 15;
+            return position;
+        }
+        if (pin == pinC) {
+            position.x = c.getPosition().x + c.getSizeWidth() - 5;
+            position.y = c.getPosition().y + c.getSizeHeight() - 5;
+            return position;
+        }
+        if (pin == 1){//switch
+            position.x =c.getPosition().x + c.getSizeWidth() / 2;
+            position.y =c.getPosition().y + c.getSizeHeight() - 4;
+            return position;
+        }
+        if (pin == 4){//vcc
+            position.x =c.getPosition().x + c.getSizeWidth() / 2;
+            position.y =c.getPosition().y + c.getSizeHeight() / 2;
+            return position;
+        }//gnd
+        position.x =c.getPosition().x + c.getSizeWidth() / 2;
+        position.y =c.getPosition().y + 3  ;
+        return position;
     }
 
     /**
+     * given two component this function will update th component's states
+     * and will also call updateLine(); to from a visual connection trough them
      *
-     * @param IDPin X = ID; Y = Pin
+     * @param firstIDComponentPin the first component clicked
+     * @param secondIDComponentPin the second component clicked
      */
-    public void recursiveUpdate(Point IDPin){
-        for(Component c : componentMap.values()){
-
-        }
-    }
-
-    public void update(Point firstComponent, Point secondComponent) {
-
-        updateLine(firstComponent, secondComponent);
-
+    public void connect(Point firstIDComponentPin, Point secondIDComponentPin) {
+        updateLine(firstIDComponentPin, secondIDComponentPin);
         //.x = ID ; .y = pin
-        if (!componentMap.get(firstComponent.x).getType().equalsIgnoreCase("transistor")) {
-            componentMap.get(secondComponent.x).setState(secondComponent.y, true);
-            componentMap.get(secondComponent.x).setConnection(new Point(firstComponent.x, secondComponent.y));
-            componentMap.get(secondComponent.x).update();
-            recursiveUpdate(secondComponent);
-            return;
-        }
-        if (!componentMap.get(secondComponent.x).getType().equalsIgnoreCase("transistor")) {
-            componentMap.get(firstComponent.x).setState(firstComponent.y, true);
-            componentMap.get(firstComponent.x).setConnection(new Point(secondComponent.x, firstComponent.y));
-            componentMap.get(firstComponent.x).update();
-            return;
-        }
-        if (componentMap.get(firstComponent.x).getState(firstComponent.y)) {
-            componentMap.get(secondComponent.x).setState(secondComponent.y, true);
-            componentMap.get(secondComponent.x).update();
+        Component firstComponent = componentMap.get(firstIDComponentPin.x).returnObjName();
+        Component secondComponent = componentMap.get(secondIDComponentPin.x).returnObjName();
+        try {
 
+            /* Aggiorno prima il transistor */
+            if (firstComponent.getType().equalsIgnoreCase("transistor")) {
+                firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
+                secondComponent.setConnection(firstComponent, secondIDComponentPin.y, firstComponent.getState(firstIDComponentPin.y));
+            } else {
+                secondComponent.setConnection(firstComponent, secondIDComponentPin.y, firstComponent.getState(firstIDComponentPin.y));
+                firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
+            }
+        } catch (StackOverflowError e) {
+            System.out.println("errore nella connessione; loop infinito impossibile collegare");
+            //    firstComponent.resetPinIfContain(secondComponent);
+            //      deleteLine(firstComponent.getIDComponent());
         }
-        if (componentMap.get(secondComponent.x).getState(secondComponent.y)) {
-            componentMap.get(firstComponent.x).setState(firstComponent.y, true);
-            componentMap.get(firstComponent.x).update();
-        }
-        /*aggiorno i pin per entrambi i transistor(dicendogli con quale ID sono collegati)*/
-        componentMap.get(firstComponent.x).setConnection(new Point(secondComponent.x, firstComponent.y));
-        componentMap.get(secondComponent.x).setConnection(new Point(firstComponent.x, secondComponent.y));
-        //aggiorno gli stati per entrambi
-        componentMap.get(firstComponent.x).update();
-        componentMap.get(secondComponent.x).update();
-
 
     }
 
-    public void delete() {
-        deleteIsSelected = true;
-        selectIsSelected = false;
-        gndToSet = false;
-        vccToSet = false;
-        transistorToSet = false;
-    }
 
     /**
      * if called this function will set the parameter transistorToSet to true
      * and then after clicking on the jPanel it will rapresent the image
      */
     public void addTransistor() { //TODO change the way of implementing a system of transistor if more then one
-        selectIsSelected = false;
-        deleteIsSelected = false;
+        resetAll();
         transistorToSet = true;
-        vccToSet = false;
-        gndToSet = false;
+
     }
 
     public void addVcc() {
-        selectIsSelected = false;
-        deleteIsSelected = false;
-        gndToSet = false;
-        transistorToSet = false;
+        resetAll();
         vccToSet = true;
     }
 
     public void addGnd() {
-        selectIsSelected = false;
-        deleteIsSelected = false;
-        vccToSet = false;
-        transistorToSet = false;
+        resetAll();
         gndToSet = true;
     }
 
     public void select() {
+        resetAll();
+        selectIsSelected = true;
+    }
+
+    public void delete() {
+        resetAll();
+        deleteIsSelected = true;
+    }
+
+    public void addSwitch() {
+        resetAll();
+        switchIsSelected = true;
+    }
+
+    /**
+     * fast way to turn every "componentIsSelected" to false
+     */
+    public void resetAll() {
         gndToSet = false;
         vccToSet = false;
         transistorToSet = false;
         deleteIsSelected = false;
-        selectIsSelected = true;
+        selectIsSelected = false;
+        switchIsSelected = false;
     }
-
     @Override
     public void mousePressed(MouseEvent e) {
     }
@@ -326,9 +364,5 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     public void mouseExited(MouseEvent e) {
     }
 
-    public void resetAll() {
-        select();
-        /* Ripristino la connessione a false in caso fosse stata messa a true */
-        setConnection = false;
-    }
+
 }
