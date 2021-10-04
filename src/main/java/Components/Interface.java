@@ -1,5 +1,7 @@
 package Components;
 
+import Savings.ReadObjects;
+import Savings.WriteObjects;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -301,6 +303,26 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     }
 
+    public void saveObjects(){
+        WriteObjects wo = new WriteObjects(this);
+        wo.saveObjects(componentMap,lines);
+    }
+    public void readObject(){
+
+
+        ReadObjects ro = new ReadObjects(this);
+        if (ro.readComponents() != null){
+            componentMap = ro.readComponents();
+            this.IDComponent = componentMap.size() + 1;
+        }
+        if (ro.readLines() != null){
+            lines = ro.readLines();
+            for(Component c : componentMap.values()){
+                c.update();
+            }
+        }
+        repaint();
+    }
 
     /**
      * if called this function will set the parameter transistorToSet to true

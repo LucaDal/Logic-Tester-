@@ -4,14 +4,12 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 
 
-public class Transistor implements Component {
-    boolean A, B, C, isOn, updated, fromAtoC, BisUpdated,
+public class Transistor implements Component, Serializable {
+    boolean A, B, C, updated, fromAtoC, BisUpdated,
             AisUpdated, CisUpdated, isGrounded, fromComponentToA,
             fromComponentToC, AisGrounded, CisGrounded, groundUpdate;
     final int pinA = 3, pinB = 2, pinC = 9;
@@ -36,10 +34,10 @@ public class Transistor implements Component {
 
     //@SuppressWarnings("unchecked")
     private void initialize() {
-        String path = System.getProperty("user.dir");
         BufferedImage imgb, imgbAB, imgbABC, imgbAC, imgbB, imgbBC, imgbC, imgbA;
-        A = B = C = isOn = updated = fromAtoC = BisUpdated = AisUpdated = CisUpdated =
-                fromComponentToA = fromComponentToC = AisGrounded = CisGrounded = groundUpdate= false;
+        String path = System.getProperty("user.dir");
+        A = B = C = updated = fromAtoC = BisUpdated = AisUpdated = CisUpdated =
+                fromComponentToA = fromComponentToC = AisGrounded = CisGrounded = groundUpdate = false;
         try {
             imgb = ImageIO.read(new File((path + "\\src\\main\\resources\\npn.png")));
             imgbAB = ImageIO.read(new File(path + "\\src\\main\\resources\\npnAB.png"));
@@ -89,7 +87,8 @@ public class Transistor implements Component {
 
     /**
      * tell if the id given is connected to this transistor, if does it disconnect
-     *  and reset the pin following setConection's rules
+     * and reset the pin following setConection's rules
+     *
      * @param ID is the ID of the element which was allocated with some pin
      */
     public void resetPinIfContain(Component ID) {
@@ -99,7 +98,7 @@ public class Transistor implements Component {
         if (transistorConnectedToPinA == ID) {
             if (fromComponentToA) {
                 setConnection(null, pinA, false);
-            }else{
+            } else {
                 transistorConnectedToPinA = null;
             }
             System.out.println("eliminata connessione tra pin A e il componente di ID:" + ID);
@@ -111,7 +110,7 @@ public class Transistor implements Component {
         if (transistorConnectedToPinC == ID) {
             if (fromComponentToC) {
                 setConnection(null, pinC, false);
-            }else{
+            } else {
                 transistorConnectedToPinC = null;
             }
             System.out.println("eliminata connessione tra pin C e il componente di ID:" + ID);
@@ -197,6 +196,7 @@ public class Transistor implements Component {
         if (pin == pinA) {
             if (state) {
                 fromComponentToA = true;
+                fromAtoC = true;
             }
             setState(pinA, state);
             transistorConnectedToPinA = c;
@@ -280,7 +280,7 @@ public class Transistor implements Component {
             }
             CisUpdated = false;
         }
-        toldToUpdate= null;
+        toldToUpdate = null;
         System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
     }
 
@@ -300,7 +300,7 @@ public class Transistor implements Component {
                 if (!A && fromComponentToA) {
                     fromComponentToA = false;
                 }
-                if (!A && !fromAtoC && B && C){
+                if (!A && !fromAtoC && B && C) {
                     AisUpdated = false;
                     A = true;
                 }
@@ -315,9 +315,9 @@ public class Transistor implements Component {
                     fromAtoC = true;
                 }
             }
-            if (AisGrounded && B){
+            if (AisGrounded && B) {
                 this.isGrounded = true;
-                if (C){
+                if (C) {
                     CisUpdated = true;
                     C = false;
                 }
@@ -330,7 +330,7 @@ public class Transistor implements Component {
                 if (state) {//TODO fix sometihing here
                     if (CisGrounded) {
                         isGrounded = true;
-                        if (transistorConnectedToPinA != null){
+                        if (transistorConnectedToPinA != null) {
                             transistorConnectedToPinA.tellToUpdate(this);
                             transistorConnectedToPinA.setGrounded(true, transistorConnectedToPinA.getPinFromAnotherObj(this));
                         }
@@ -340,7 +340,7 @@ public class Transistor implements Component {
                         }
                     } else if (AisGrounded) {
                         isGrounded = true;
-                        if (transistorConnectedToPinC != null){
+                        if (transistorConnectedToPinC != null) {
                             transistorConnectedToPinC.tellToUpdate(this);
                             transistorConnectedToPinC.setGrounded(true, transistorConnectedToPinC.getPinFromAnotherObj(this));
                         }
@@ -348,7 +348,7 @@ public class Transistor implements Component {
                             CisUpdated = true;
                             C = false;
                         }
-                    }else {
+                    } else {
                         setGrounded(false, 0);
                     }
                     if (A) {//A e B attivi -> C attivo
@@ -363,11 +363,11 @@ public class Transistor implements Component {
                     }
                 }
                 if (!state) { // means off //TODO tell if corrent comes from another component
-                    if (A && fromAtoC){
+                    if (A && fromAtoC) {
                         C = false;
                         CisUpdated = true;
                     }
-                    if (C && !fromAtoC){
+                    if (C && !fromAtoC) {
                         A = false;
                         AisUpdated = true;
                     }
@@ -381,7 +381,7 @@ public class Transistor implements Component {
                 if (!C && fromComponentToC) {
                     fromComponentToC = false;
                 }
-                if (!C && B && fromAtoC && A){
+                if (!C && B && fromAtoC && A) {
                     CisUpdated = false;
                     this.C = true;
                 }
@@ -395,9 +395,9 @@ public class Transistor implements Component {
                     fromAtoC = false;
                 }
             }
-            if (CisGrounded && B){
+            if (CisGrounded && B) {
                 this.isGrounded = true;
-                if (A){
+                if (A) {
                     AisUpdated = true;
                     A = false;
                 }
@@ -426,7 +426,7 @@ public class Transistor implements Component {
 
     @Override
     public void tellToUpdate(Component fromThisComponent) {
-            this.toldToUpdate = fromThisComponent;
+        this.toldToUpdate = fromThisComponent;
     }
 
     @Override
@@ -451,5 +451,61 @@ public class Transistor implements Component {
             g.drawImage(imgAC, x, y, parent);
         if (!A && B && C)
             g.drawImage(imgBC, x, y, parent);
+    }
+
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeBoolean(A);
+        stream.writeBoolean(B);
+        stream.writeBoolean(updated);
+        stream.writeBoolean(fromAtoC);
+        stream.writeBoolean(BisUpdated);
+        stream.writeBoolean(AisUpdated);
+        stream.writeBoolean(CisUpdated);
+        stream.writeBoolean(isGrounded);
+        stream.writeBoolean(fromComponentToA);
+        stream.writeBoolean(fromComponentToC);
+        stream.writeBoolean(AisGrounded);
+        stream.writeBoolean(CisGrounded);
+        stream.writeBoolean(groundUpdate);
+        stream.writeInt(x);
+        stream.writeInt(y);
+        stream.writeInt(sizeWidth);
+        stream.writeInt(sizeHeight);
+        stream.writeInt(ID);
+        stream.writeObject(parent);
+        stream.writeObject(transistorConnectedToPinA);
+        stream.writeObject(transistorConnectedToPinB);
+        stream.writeObject(transistorConnectedToPinB);
+        stream.writeObject(toldToUpdate);
+
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        this.A = stream.readBoolean();
+        this.B = stream.readBoolean();
+        this.updated = stream.readBoolean();
+        this.fromAtoC = stream.readBoolean();
+        this.BisUpdated = stream.readBoolean();
+        this.AisUpdated = stream.readBoolean();
+        this.CisUpdated = stream.readBoolean();
+        this.isGrounded = stream.readBoolean();
+        this.fromComponentToA = stream.readBoolean();
+        this.fromComponentToC = stream.readBoolean();
+        this.AisGrounded = stream.readBoolean();
+        this.CisGrounded = stream.readBoolean();
+        this.groundUpdate = stream.readBoolean();
+        this.x = stream.readInt();
+        this.y = stream.readInt();
+        this.sizeWidth = stream.readInt();
+        this.sizeHeight = stream.readInt();
+        this.ID = stream.readInt();
+        this.parent = (JPanel) stream.readObject();
+        this.transistorConnectedToPinA = (Component) stream.readObject();
+        this.transistorConnectedToPinB = (Component) stream.readObject();
+        this.transistorConnectedToPinB = (Component) stream.readObject();
+        this.toldToUpdate = (Component) stream.readObject();
+        initialize();
     }
 }

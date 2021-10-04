@@ -6,9 +6,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Switch implements Component {
+public class Switch implements Component, Serializable {
     final String type = "switch";
     boolean state = false;
     Image img;

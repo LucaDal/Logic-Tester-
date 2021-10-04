@@ -81,9 +81,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
             case "Transistor" -> Interface.addTransistor();
             case "Vcc" -> Interface.addVcc();
             case "Select" -> Interface.select();
-            case "Delete" -> Interface.delete();
             case "GND" -> Interface.addGnd();
-            case "Switch" -> Interface.addSwitch();
+            case "Delete" -> Interface.readObject();
+            case "Switch" -> Interface.saveObjects();//TODO change and crerate a manu
         }
     }
 

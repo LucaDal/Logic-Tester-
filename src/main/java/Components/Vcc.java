@@ -6,9 +6,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Vcc implements Component {
+public class Vcc implements Component, Serializable {
     final String type = "vcc";
     boolean state = true, isGrounded = false, imBeenDeleted = false;
     Image img;
@@ -24,7 +25,10 @@ public class Vcc implements Component {
         this.y = y - sizeHeight / 2;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
+        initialize();
 
+    }
+    private void initialize(){
         BufferedImage imgb = null;
         try {
             String path = System.getProperty("user.dir");
@@ -180,4 +184,35 @@ public class Vcc implements Component {
     public void paint(Graphics g) {
         g.drawImage(img, x, y, parent);
     }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+
+        //boolean state = true, isGrounded = false, imBeenDeleted = false;
+        stream.writeBoolean(state);
+        stream.writeBoolean(isGrounded);
+        stream.writeInt(sizeWidth);
+        stream.writeInt(sizeHeight);
+        stream.writeInt(x);
+        stream.writeInt(y);
+        stream.writeInt(ID);
+        stream.writeObject(parent);
+        stream.writeObject(connectedComponent);
+        stream.writeObject(toldToUpdate);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        this.state =stream.readBoolean();
+        this.isGrounded =stream.readBoolean();
+        this.sizeWidth =stream.readInt();
+        this.sizeHeight =stream.readInt();
+        this.x =stream.readInt();
+        this.y =stream.readInt();
+        this.ID =stream.readInt();
+        this.parent =(JPanel)stream.readObject();
+        this.connectedComponent =(HashMap)stream.readObject();
+        this.toldToUpdate =(Component)stream.readObject();
+        System.out.println(state + "after REading");
+        initialize();
+    }
+
 }

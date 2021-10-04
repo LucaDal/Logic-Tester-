@@ -1,4 +1,5 @@
 package Components;
+
 import java.awt.*;
 
 public interface Component {
@@ -39,6 +40,5 @@ public interface Component {
     void setState(int pin,boolean state);
     int getPinFromAnotherObj(Component ObgID);
     void tellToUpdate(Component fromThisComponent);
-
     void update();
 }

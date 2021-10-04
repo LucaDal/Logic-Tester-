@@ -6,10 +6,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 
 
-public class Gnd implements Component{
+public class Gnd implements Component, Serializable {
 
     final String type = "gnd";
     Image img;
@@ -25,7 +26,10 @@ public class Gnd implements Component{
         this.y = y - sizeHeight / 2;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
+        initialize();
 
+    }
+    private void initialize(){
         BufferedImage imgb = null;
         try {
             String path = System.getProperty("user.dir");
@@ -35,7 +39,6 @@ public class Gnd implements Component{
         }
         img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
     }
-
     public void setX(int x) {
         this.x = x;
     }
@@ -72,8 +75,9 @@ public class Gnd implements Component{
 
     /**
      * uselles - always true so you wont need it
+     *
      * @param state state
-     * @param pin pin
+     * @param pin   pin
      */
     @Override
     public void setGrounded(boolean state, int pin) {
@@ -83,22 +87,21 @@ public class Gnd implements Component{
      * then set the other component to ground because this class is gnd so..
      *
      * @param anotherComponent to connect with
-     * @param pin of this transistor to set to
-     * @param state state of the component which connect to
+     * @param pin              of this transistor to set to
+     * @param state            state of the component which connect to
      */
     @Override
     public void setConnection(Component anotherComponent, int pin, boolean state) {
         connectedComponent.put(anotherComponent.getIDComponent(), anotherComponent.returnObjName());
-        anotherComponent.setGrounded(true,anotherComponent.getPinFromAnotherObj(this));
+        anotherComponent.setGrounded(true, anotherComponent.getPinFromAnotherObj(this));
     }
-
 
 
     @Override
     public void removeConnection() {
-        for(Component c : connectedComponent.values()){
+        for (Component c : connectedComponent.values()) {
             c.resetPinIfContain(this);
-            c.setGrounded(false,c.getPinFromAnotherObj(this));
+            c.setGrounded(false, c.getPinFromAnotherObj(this));
         }
     }
 
@@ -109,7 +112,7 @@ public class Gnd implements Component{
 
     @Override
     public Point inputTarget(int x, int y) {
-        return new Point (ID,1);
+        return new Point(ID, 1);
     }
 
     @Override
@@ -144,5 +147,29 @@ public class Gnd implements Component{
 
     public void paint(Graphics g) {
         g.drawImage(img, x, y, parent);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+
+        stream.writeInt(sizeWidth);
+        stream.writeInt(sizeHeight);
+        stream.writeInt(x);
+        stream.writeInt(y);
+        stream.writeInt(ID);
+        stream.writeObject(parent);
+        stream.writeObject(connectedComponent);
+        stream.writeObject(toldToUpdate);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        this.sizeWidth =stream.readInt();
+        this.sizeHeight =stream.readInt();
+        this.x =stream.readInt();
+        this.y =stream.readInt();
+        this.ID =stream.readInt();
+        this.parent =(JPanel)stream.readObject();
+        this.connectedComponent =(HashMap)stream.readObject();
+        this.toldToUpdate =(Component)stream.readObject();
+        initialize();
     }
 }
