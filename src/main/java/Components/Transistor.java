@@ -7,26 +7,25 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 
 public class Transistor implements Component, Serializable {
+    @Serial
+    private static final long serialVersionUID = -8082050773708616884L;
     boolean A, B, C, updated, fromAtoC, BisUpdated, lastState,
             AisUpdated, CisUpdated, isGrounded, AisGrounded, CisGrounded, groundUpdate;
 
     final int pinA = 3, pinB = 2, pinC = 9;
     final String type = "transistor";
     Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
-    int sizeWidth, sizeHeight, x, y, ID,newConnectionOnPin = 0;
+    int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
     JPanel parent;
     HashMap<Integer, Component> transistorConnectedToPinA = new HashMap<>();
     HashMap<Integer, Component> transistorConnectedToPinB = new HashMap<>();
     HashMap<Integer, Component> transistorConnectedToPinC = new HashMap<>();
     Component toldToUpdate = null;
     Component toConnect;
-    ArrayList<Component> fromComponentToA = new ArrayList();
-    ArrayList<Component> fromComponentToC = new ArrayList();
+    ArrayList<Component> fromComponentToA = new ArrayList<>();
+    ArrayList<Component> fromComponentToC = new ArrayList<>();
 
     public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -85,9 +84,21 @@ public class Transistor implements Component, Serializable {
 
     @Override
     public void setPosition(Point position) {
-
+        this.x = position.x;
+        this.y = position.y;
     }
 
+    @Override
+    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
+        if (pin == pinA) {
+            return transistorConnectedToPinA;
+        }
+        if (pin == pinB) {
+            return transistorConnectedToPinB;
+        }
+        return transistorConnectedToPinC;
+
+    }
 
     /**
      * tell if the id given is connected to this transistor, if does it disconnect
@@ -97,10 +108,10 @@ public class Transistor implements Component, Serializable {
      */
     public void resetPinIfContain(Component ID) {//TODO fix here forse devi aggiungere da quali componenti arriva la corrente
 
-        if (updateHashMap(transistorConnectedToPinA, ID, fromComponentToA, pinA)){//pinA
+        if (updateHashMap(transistorConnectedToPinA, ID, fromComponentToA, pinA)) {//pinA
             return;
         }
-        if(updateHashMap(transistorConnectedToPinB, ID, null, pinB)){//pinB
+        if (updateHashMap(transistorConnectedToPinB, ID, null, pinB)) {//pinB
             return;
         }
         updateHashMap(transistorConnectedToPinC, ID, fromComponentToC, pinC);
@@ -118,7 +129,6 @@ public class Transistor implements Component, Serializable {
      */
     private boolean updateHashMap(HashMap<Integer, Component> hashMap, Component toCompare, ArrayList<Component> arrayOfComponents, int pin) {
         boolean grounded = false, containsTheComponent = false, returnValue = false;
-        int hashMapSize = hashMap.size();
         for (Component c : hashMap.values()) {
             if (c == toCompare) {//devo controllare se ci sono altri componenti da cui arriva la corrente
                 containsTheComponent = true;
@@ -140,7 +150,7 @@ public class Transistor implements Component, Serializable {
         if (containsTheComponent) {
             hashMap.remove(toCompare.getIDComponent());
             returnValue = true;
-            if (pin == pinB && hashMap.size() == 0){
+            if (pin == pinB && hashMap.size() == 0) {
                 setState(pin, false);
             }
 
@@ -248,19 +258,19 @@ public class Transistor implements Component, Serializable {
 
     @Override
     public void updateAfterConnection() {
-        if(newConnectionOnPin == pinA){
-            if (lastState){
+        if (newConnectionOnPin == pinA) {
+            if (lastState) {
                 fromComponentToA.add(toConnect);
                 fromAtoC = true;
                 setState(pinA, true);
             }
         }
-        if (newConnectionOnPin == pinB){
+        if (newConnectionOnPin == pinB) {
             tellToUpdate(this);
             setState(pinB, lastState);
 
         }
-        if (newConnectionOnPin == pinC){
+        if (newConnectionOnPin == pinC) {
             if (lastState) {
                 fromComponentToC.add(toConnect);
                 setState(pinC, true);
@@ -277,10 +287,10 @@ public class Transistor implements Component, Serializable {
 
     /**
      * updated from gnd and other transistors when connected to gnd or eliminated
-     *
+     * <p>
      * if AisGrounded it will update the pin A and it's component connected to it
      * otherwise it will be false and will check/update the state of ground checking every component before
-     *
+     * <p>
      * fro CisGrounded it is the same as AisGrounded
      * <p>
      * when setState() will call this setGrounded in this function the connected pin will be updated to isGrounded = false
@@ -374,7 +384,7 @@ public class Transistor implements Component, Serializable {
                     c.setGrounded(false, c.getPinFromAnotherObj(this));
                 }
             } else {
-                if (c != toldToUpdate ){
+                if (c != toldToUpdate) {
                     c.update();
                 }
             }
@@ -478,7 +488,7 @@ public class Transistor implements Component, Serializable {
                             C = false;
                         }
                     } else {
-                        if (isGrounded){
+                        if (isGrounded) {
                             setGrounded(false, 0);
                         }
                     }

@@ -6,6 +6,7 @@ import java.io.Serializable;
 public class Line implements Serializable{
     int id1, id2, pin1, pin2;
 
+
     public Line(int id1, int pin1, int id2, int pin2) {
         this.id1 = id1;
         this.id2 = id2;

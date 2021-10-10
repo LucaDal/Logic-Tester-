@@ -17,10 +17,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     HashMap<Integer, Component> componentMap = new HashMap<>();
     HashMap<Line, ArrayList<Integer>> lines = new HashMap<>();
 
-    int IDComponent = 1, pinA = 3, pinB = 2, pinC = 9, IdReturnedTemp;
+    int IDComponent = 1, pinA = 3, pinB = 2, pinC = 9, IdReturnedTemp, IdComponentMoved,startDraggingX,startDraggingY;
     //dont use pin = 1 - 4 - 5 -> are used into returnPosition
     boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false, debugIsSelected = false,
-            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false;
+            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false, linesAlreadyEliminated = false;
     Point tempConnectionPointFirstCall = new Point();
     Point tempConnectionPointSecondCall = new Point();
 
@@ -37,8 +37,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        g.setColor(Color.black);
         for (ArrayList<Integer> l : lines.values()) {
-            g.setColor(Color.black);
             g.drawLine(l.get(0), l.get(1), l.get(2), l.get(3));
         }
         for (Components.Component c : componentMap.values()) {
@@ -175,14 +175,14 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
      * @param firstIDComponentPin  a point where .X is the component ID and .y is the pin that is going to be paired with
      * @param secondIDComponentPin same as firstIDComponentPin
      */
-    @SuppressWarnings("unchecked")
     //dava problemi inutili...non ricordo quali però :c... ma inutili tranquillo tipo "Raw use of parameterized class 'ArrayList'"
-    public void updateLine(Point firstIDComponentPin, Point secondIDComponentPin) {
+    private void updateLine(Point firstIDComponentPin, Point secondIDComponentPin) {
         //inserisco i dati per disegnare
-        ArrayList<Integer> linesCooridnate = new <Integer>ArrayList();
+        ArrayList<Integer> linesCooridnate = new ArrayList<>();
         Components.Component firstComponent = componentMap.get(firstIDComponentPin.x).returnObjName();
         Components.Component secondComponent = componentMap.get(secondIDComponentPin.x).returnObjName();
         Point positionTemp;
+
         /*FIRST COMPONENT*/
         if (firstComponent.getType().equalsIgnoreCase("transistor")) {
             positionTemp = returnPosition(firstIDComponentPin.y, firstComponent);
@@ -224,6 +224,29 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         Line coordinates = new Line(firstIDComponentPin.x, firstIDComponentPin.y, secondIDComponentPin.x, secondIDComponentPin.y);
         lines.put(coordinates, linesCooridnate);
         //linesUpdated = true;
+    }
+    private void updateLineAfterDragged(int IDComponent){
+        Component toUpdate = componentMap.get(IDComponent);
+        HashMap<Integer,Component> tempHm;
+        if (toUpdate.getType().equalsIgnoreCase("transistor")){
+            tempHm = toUpdate.getConnectionsFrom(pinA);
+            iterateHashMapForConnections(tempHm,pinA,IDComponent,toUpdate);
+            tempHm = toUpdate.getConnectionsFrom(pinB);
+            iterateHashMapForConnections(tempHm,pinB,IDComponent,toUpdate);
+            tempHm = toUpdate.getConnectionsFrom(pinC);
+            iterateHashMapForConnections(tempHm,pinC,IDComponent,toUpdate);
+        }else{
+            tempHm = toUpdate.getConnectionsFrom(0);
+            iterateHashMapForConnections(tempHm,0,IDComponent,toUpdate);
+
+        }
+    }
+
+    private void iterateHashMapForConnections(HashMap<Integer,Component> hm, int pinPassed,int IDComponent,Component toUpdate){
+        for (Component c : hm.values()){
+            int pinOtherComponent = c.getPinFromAnotherObj(toUpdate);
+            updateLine(new Point(IDComponent,pinPassed),new Point(c.getIDComponent(),pinOtherComponent));
+        }
     }
 
     /**
@@ -386,12 +409,46 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         debugIsSelected = false;
     }
 
+
+    /**
+     * se il componente esiste -> allora elimino tutti i collegamenti
+     * quando clicco su un componente e inizio a muoverlo mouseDragged fa si che se il componente passa sopra un altro componente non
+     * viene switchato, viene ripristinato a false solo quando rilascio il click del mouse
+     *
+     * una volta finito di muoverlo ricollego tutto tramite la funzione updateLineAfterDragged() in mouseReleased()
+     * @param e mouseEvent
+     */
     @Override
     public void mouseDragged(MouseEvent e) {//TODO moving Components
-        mouseDragged = true;
-        int IdReturned = checkMouseOverComponent(e);
-        if (IdReturned != 0){
-            componentMap.get(IdReturned).setPosition(new Point(e.getX(),e.getY()));
+        if (!mouseDragged) {
+            mouseDragged = true;
+            IdComponentMoved = checkMouseOverComponent(e);
+            startDraggingY = e.getY();
+            startDraggingX = e.getX();
+            Iterator<Map.Entry<Line,ArrayList<Integer>>> iter = lines.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Line,ArrayList<Integer>> mapEntry =(Map.Entry<Line,ArrayList<Integer>>)iter.next();
+                Line key = mapEntry.getKey();
+                if (mapEntry.getKey().contain(IdComponentMoved)){
+                    iter.remove();
+                }
+            }
+        }
+        if (IdComponentMoved != 0 && IdComponentMoved < IDComponent) {
+            Component c = componentMap.get(IdComponentMoved);
+            c.setPosition(new Point(e.getX() - c.getSizeWidth() / 2, e.getY() - c.getSizeWidth() / 2));
+            repaint();
+        }else{
+            if (!linesAlreadyEliminated){
+                lines.clear();
+                linesAlreadyEliminated = true;
+            }
+            for (Component c : componentMap.values()){
+                c.setPosition(new Point(c.getPosition().x + (e.getX()-startDraggingX),c.getPosition().y + (e.getY() - startDraggingY) ));
+            }
+            startDraggingY = e.getY();
+            startDraggingX = e.getX();
+            repaint();
         }
     }
 
@@ -403,8 +460,26 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     public void mousePressed(MouseEvent e) {
     }
 
+    /**
+     * usato principalmente per mouseDragged -> quando rilascio -> ripristino mouseDraged to false
+     * aggiorno tutte le linee dopo aver aggiornato tutte le posizioni da mouseDragged();
+     *
+     * @param e event from the mouse
+     */
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (mouseDragged && IdComponentMoved>0 && IdComponentMoved < IDComponent){
+            updateLineAfterDragged(IdComponentMoved);
+            repaint();
+        }
+        mouseDragged = false;
+        if (linesAlreadyEliminated){
+            for(Component c : componentMap.values()){//TODO ottimizzare e collegare una sola volta gli elementi tra loro(cerca dall'hashMap lines)
+                updateLineAfterDragged(c.getIDComponent());
+                repaint();
+            }
+            linesAlreadyEliminated = false;
+        }
     }
 
     @Override

@@ -6,12 +6,15 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 
 
 public class Gnd implements Component, Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 6584013415603752513L;
     final String type = "gnd";
     Image img;
     int sizeWidth, sizeHeight, x, y, ID;
@@ -30,14 +33,13 @@ public class Gnd implements Component, Serializable {
 
     }
     private void initialize(){
-        BufferedImage imgb = null;
         try {
             String path = System.getProperty("user.dir");
-            imgb = ImageIO.read(new File(path + "\\src\\main\\resources\\gnd.png"));
+            BufferedImage imgb = ImageIO.read(new File(path + "\\src\\main\\resources\\gnd.png"));
+            img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
     }
 
 
@@ -59,7 +61,13 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public void setPosition(Point position) {
+        this.x = position.x;
+        this.y = position.y;
+    }
 
+    @Override
+    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
+        return connectedComponent;
     }
 
     @Override
@@ -158,8 +166,8 @@ public class Gnd implements Component, Serializable {
         g.drawImage(img, x, y, parent);
     }
 
+    @Serial
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-
         stream.writeInt(sizeWidth);
         stream.writeInt(sizeHeight);
         stream.writeInt(x);
@@ -170,6 +178,7 @@ public class Gnd implements Component, Serializable {
         stream.writeObject(toldToUpdate);
     }
 
+    @Serial
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         this.sizeWidth =stream.readInt();
         this.sizeHeight =stream.readInt();

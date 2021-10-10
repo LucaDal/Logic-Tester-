@@ -1,6 +1,7 @@
 package Components;
 
 import java.awt.*;
+import java.util.HashMap;
 
 public interface Component {
     final String type = "";
@@ -11,6 +12,14 @@ public interface Component {
     int getSizeHeight();
     int getIDComponent();
     void setPosition(Point position);
+
+    /**
+     * given a pin this function will return its transistorConnectedToPin# relative to the pin insered
+     *
+     * @param pin to ask the HashMap
+     * @return an HashMap where into there are the component connected to, or null if its hash map is empty
+     */
+    HashMap<Integer,Component> getConnectionsFrom(int pin);
     /**
      * called after two component will be connected
      */

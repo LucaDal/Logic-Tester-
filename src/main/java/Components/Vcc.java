@@ -6,10 +6,13 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 
 public class Vcc implements Component, Serializable {
+    @Serial
+    private static final long serialVersionUID = 2344710408277521742L;
     final String type = "vcc";
     boolean state = true, isGrounded = false, imBeenDeleted = false;
     Image img;
@@ -57,7 +60,13 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public void setPosition(Point position) {
+        this.x = position.x;
+        this.y = position.y;
+    }
 
+    @Override
+    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
+        return connectedComponent;
     }
 
     @Override

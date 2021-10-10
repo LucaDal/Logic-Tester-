@@ -3,10 +3,13 @@ package Components;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 
 public class Switch implements Component, Serializable {
+    @Serial
+    private static final long serialVersionUID = -7039775726878008122L;
     final String type = "switch";
     boolean state = false;
     int sizeWidth, sizeHeight, x, y, ID;
@@ -66,7 +69,13 @@ public class Switch implements Component, Serializable {
 
     @Override
     public void setPosition(Point position) {
+        this.x = position.x;
+        this.y = position.y;
+    }
 
+    @Override
+    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
+        return connectedComponent;
     }
 
     @Override
