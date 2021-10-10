@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static javax.swing.JFileChooser.APPROVE_OPTION;
-import static javax.swing.JFileChooser.SAVE_DIALOG;
 
 public class WriteObjects {
     JPanel parent;
@@ -21,9 +20,13 @@ public class WriteObjects {
     public WriteObjects(JPanel parent){
         this.parent = parent;
     }
-
+    /**
+     * Saves componentMap HashMap and Lines HashMap
+     *
+     * to get Lines Hashmap call readLines();
+     * @return componentMap
+     */
     public boolean saveObjects(HashMap<Integer, Component> componentMap,HashMap<Line, ArrayList<Integer>> lines) {
-        boolean success = true;
         JFileChooser save = new JFileChooser();
         save.setDialogTitle("Saving Project");
         save.setSelectedFile(new File(".bin"));
@@ -40,13 +43,11 @@ public class WriteObjects {
 
                 ow.close();
             } catch (IOException e) {
-                success = false;
+                JOptionPane.showMessageDialog(parent,"Error saving file.");
                 e.printStackTrace();
             }
-            System.out.println("file creato :"+save.getSelectedFile());
-            return success;
+            return true;
         }
-        JOptionPane.showMessageDialog(parent,"Error Loading file.");
         return false;
     }
 }

@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+
 public class ReadObjects {
     JPanel parent;
     HashMap<Integer, Component> componentMap;
@@ -22,12 +23,19 @@ public class ReadObjects {
 
     public ReadObjects(JPanel parent) {
         this.parent = parent;
-        this.open.setDialogTitle("Saving Project");
+        this.open.setDialogTitle("Reading Project");
         this.open.setApproveButtonText("Open");
         this.open.setFileFilter(new FileNameExtensionFilter("bin file", "bin"));
         this.option = open.showOpenDialog(parent);
     }
 
+    /**
+     * Reads componentMap HashMap and Lines HashMap
+     *
+     * to get Lines Hashmap call readLines();
+     * @return componentMap
+     */
+    @SuppressWarnings("unchecked")
     public HashMap<Integer, Component> readComponents() {
 
         if (option == JFileChooser.APPROVE_OPTION) {
@@ -40,7 +48,7 @@ public class ReadObjects {
                 ois.close();
 
             } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(parent,"Error loading file.");
             }
         }
         return components;

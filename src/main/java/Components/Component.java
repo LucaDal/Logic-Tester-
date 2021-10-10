@@ -10,6 +10,11 @@ public interface Component {
     int getSizeWidth();
     int getSizeHeight();
     int getIDComponent();
+    void setPosition(Point position);
+    /**
+     * called after two component will be connected
+     */
+    void updateAfterConnection();
     /**
      * tell if the id given is connected to this transistor
      * if it has it it will put it false

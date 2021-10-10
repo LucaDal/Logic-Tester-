@@ -39,14 +39,6 @@ public class Vcc implements Component, Serializable {
         }
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
     public Point getPosition() {
         return new Point(x, y);
     }
@@ -61,6 +53,16 @@ public class Vcc implements Component, Serializable {
 
     public int getIDComponent() {
         return ID;
+    }
+
+    @Override
+    public void setPosition(Point position) {
+
+    }
+
+    @Override
+    public void updateAfterConnection() {
+
     }
 
     @Override
@@ -186,8 +188,6 @@ public class Vcc implements Component, Serializable {
     }
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-
-        //boolean state = true, isGrounded = false, imBeenDeleted = false;
         stream.writeBoolean(state);
         stream.writeBoolean(isGrounded);
         stream.writeInt(sizeWidth);
@@ -201,6 +201,7 @@ public class Vcc implements Component, Serializable {
     }
 
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+
         this.state =stream.readBoolean();
         this.isGrounded =stream.readBoolean();
         this.sizeWidth =stream.readInt();
@@ -209,10 +210,20 @@ public class Vcc implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(HashMap)stream.readObject();
+        this.connectedComponent =(HashMap) stream.readObject();
         this.toldToUpdate =(Component)stream.readObject();
-        System.out.println(state + "after REading");
         initialize();
     }
 
+    @Override
+    public String toString() {
+        return "Vcc{"+
+                ", state=" + state +
+                ", isGrounded=" + isGrounded +
+                ", x=" + x +
+                ", y=" + y +
+                ", ID=" + ID +
+               // ", connectedComponent=" + connectedComponent.toString() +
+                '}';
+    }
 }

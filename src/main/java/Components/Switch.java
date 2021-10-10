@@ -1,10 +1,7 @@
 package Components;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -12,7 +9,6 @@ import java.util.HashMap;
 public class Switch implements Component, Serializable {
     final String type = "switch";
     boolean state = false;
-    Image img;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
     Component toldToUpdate = null;
@@ -66,6 +62,16 @@ public class Switch implements Component, Serializable {
     @Override
     public int getIDComponent() {
         return this.ID;
+    }
+
+    @Override
+    public void setPosition(Point position) {
+
+    }
+
+    @Override
+    public void updateAfterConnection() {
+
     }
 
     @Override
@@ -132,6 +138,7 @@ public class Switch implements Component, Serializable {
             this.state = state;
         }
         update();
+        toldToUpdate = null;
     }
 
     @Override
@@ -142,6 +149,7 @@ public class Switch implements Component, Serializable {
 
     @Override
     public void tellToUpdate(Component fromThisComponent) {
+        this.toldToUpdate = fromThisComponent;
     }
 
     @Override
@@ -154,4 +162,27 @@ public class Switch implements Component, Serializable {
             }
         }
     }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeBoolean(state);
+        stream.writeInt(sizeWidth);
+        stream.writeInt(sizeHeight);
+        stream.writeInt(x);
+        stream.writeInt(y);
+        stream.writeInt(ID);
+        stream.writeObject(parent);
+        stream.writeObject(connectedComponent);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        this.state =stream.readBoolean();
+        this.sizeWidth =stream.readInt();
+        this.sizeHeight =stream.readInt();
+        this.x =stream.readInt();
+        this.y =stream.readInt();
+        this.ID =stream.readInt();
+        this.parent =(JPanel)stream.readObject();
+        this.connectedComponent =(HashMap) stream.readObject();
+    }
+
 }

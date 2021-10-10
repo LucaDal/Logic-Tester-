@@ -39,13 +39,7 @@ public class Gnd implements Component, Serializable {
         }
         img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
     }
-    public void setX(int x) {
-        this.x = x;
-    }
 
-    public void setY(int y) {
-        this.y = y;
-    }
 
     public Point getPosition() {
         return new Point(x, y);
@@ -61,6 +55,16 @@ public class Gnd implements Component, Serializable {
 
     public int getIDComponent() {
         return ID;
+    }
+
+    @Override
+    public void setPosition(Point position) {
+
+    }
+
+    @Override
+    public void updateAfterConnection() {
+
     }
 
     @Override
@@ -100,8 +104,11 @@ public class Gnd implements Component, Serializable {
     @Override
     public void removeConnection() {
         for (Component c : connectedComponent.values()) {
-            c.resetPinIfContain(this);
+            c.tellToUpdate(this);
             c.setGrounded(false, c.getPinFromAnotherObj(this));
+            c.resetPinIfContain(this);
+            c.tellToUpdate(null);
+
         }
     }
 
@@ -137,7 +144,9 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public void update() {
-
+        for (Component c : connectedComponent.values()) {
+            c.setGrounded(true,c.getPinFromAnotherObj(this));
+        }
     }
 
     @Override

@@ -1,6 +1,6 @@
-package Components;
+package App;
 
-import Components.DisplayFrame;
+import WindowElements.DisplayFrame;
 
 import java.awt.*;
 
