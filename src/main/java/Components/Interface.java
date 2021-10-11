@@ -16,6 +16,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     Dimension size = new Dimension(900, 700);
     HashMap<Integer, Component> componentMap = new HashMap<>();
     HashMap<Line, ArrayList<Integer>> lines = new HashMap<>();
+    ArrayList<Line> tempLines = new ArrayList<>();
 
     int IDComponent = 1, pinA = 3, pinB = 2, pinC = 9, IdReturnedTemp, IdComponentMoved,startDraggingX,startDraggingY;
     //dont use pin = 1 - 4 - 5 -> are used into returnPosition
@@ -175,7 +176,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
      * @param firstIDComponentPin  a point where .X is the component ID and .y is the pin that is going to be paired with
      * @param secondIDComponentPin same as firstIDComponentPin
      */
-    //dava problemi inutili...non ricordo quali però :c... ma inutili tranquillo tipo "Raw use of parameterized class 'ArrayList'"
     private void updateLine(Point firstIDComponentPin, Point secondIDComponentPin) {
         //inserisco i dati per disegnare
         ArrayList<Integer> linesCooridnate = new ArrayList<>();
@@ -225,21 +225,9 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         lines.put(coordinates, linesCooridnate);
         //linesUpdated = true;
     }
-    private void updateLineAfterDragged(int IDComponent){
-        Component toUpdate = componentMap.get(IDComponent);
-        HashMap<Integer,Component> tempHm;
-        if (toUpdate.getType().equalsIgnoreCase("transistor")){
-            tempHm = toUpdate.getConnectionsFrom(pinA);
-            iterateHashMapForConnections(tempHm,pinA,IDComponent,toUpdate);
-            tempHm = toUpdate.getConnectionsFrom(pinB);
-            iterateHashMapForConnections(tempHm,pinB,IDComponent,toUpdate);
-            tempHm = toUpdate.getConnectionsFrom(pinC);
-            iterateHashMapForConnections(tempHm,pinC,IDComponent,toUpdate);
-        }else{
-            tempHm = toUpdate.getConnectionsFrom(0);
-            iterateHashMapForConnections(tempHm,0,IDComponent,toUpdate);
 
-        }
+    private void updateLineAfterDragged(Line line){
+        updateLine(new Point(line.getId1(),line.getPin1()),new Point(line.getId2(),line.getPin2()));
     }
 
     private void iterateHashMapForConnections(HashMap<Integer,Component> hm, int pinPassed,int IDComponent,Component toUpdate){
@@ -411,7 +399,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
 
     /**
-     * se il componente esiste -> allora elimino tutti i collegamenti
+     * se il componente esiste -> mi salvo la Line che sto modificando cosi da poterla ricreare dopo che il mouse si ferma
+     * in caso sto muovendo l' intera schermata allora mi salvo tutto l'hashmap delle line e nel frattempo le elimino per evitare bug grafici
+     *
+     * alla fine creo nuovamente partendo appunto dalle linee vecchie
      * quando clicco su un componente e inizio a muoverlo mouseDragged fa si che se il componente passa sopra un altro componente non
      * viene switchato, viene ripristinato a false solo quando rilascio il click del mouse
      *
@@ -430,6 +421,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                 Map.Entry<Line,ArrayList<Integer>> mapEntry =(Map.Entry<Line,ArrayList<Integer>>)iter.next();
                 Line key = mapEntry.getKey();
                 if (mapEntry.getKey().contain(IdComponentMoved)){
+                    tempLines.add(key);
                     iter.remove();
                 }
             }
@@ -440,6 +432,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             repaint();
         }else{
             if (!linesAlreadyEliminated){
+                tempLines.addAll(lines.keySet());
                 lines.clear();
                 linesAlreadyEliminated = true;
             }
@@ -469,17 +462,23 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void mouseReleased(MouseEvent e) {
         if (mouseDragged && IdComponentMoved>0 && IdComponentMoved < IDComponent){
-            updateLineAfterDragged(IdComponentMoved);
+            callUpdateLineAfterDragged();
             repaint();
         }
         mouseDragged = false;
         if (linesAlreadyEliminated){
             for(Component c : componentMap.values()){//TODO ottimizzare e collegare una sola volta gli elementi tra loro(cerca dall'hashMap lines)
-                updateLineAfterDragged(c.getIDComponent());
+                callUpdateLineAfterDragged();
                 repaint();
             }
             linesAlreadyEliminated = false;
         }
+    }
+    private void callUpdateLineAfterDragged(){
+        for (Line line : tempLines){
+            updateLineAfterDragged(line);
+        }
+        tempLines.clear();
     }
 
     @Override

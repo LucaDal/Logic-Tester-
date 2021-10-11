@@ -39,7 +39,6 @@ public class Transistor implements Component, Serializable {
                 = AisGrounded = CisGrounded = groundUpdate = lastState = false;
     }
 
-    //@SuppressWarnings("unchecked")
     private void initialize() {
         BufferedImage imgb, imgbAB, imgbABC, imgbAC, imgbB, imgbBC, imgbC, imgbA;
         String path = System.getProperty("user.dir");
@@ -104,16 +103,13 @@ public class Transistor implements Component, Serializable {
      * tell if the id given is connected to this transistor, if does it disconnect
      * and reset the pin following setConection's rules
      *
+     * da non ottimizzare updateHashMap con un if (return true se è il pin esatto) dato che possono esserci doppioni
      * @param ID is the ID of the element which was allocated with some pin
      */
     public void resetPinIfContain(Component ID) {//TODO fix here forse devi aggiungere da quali componenti arriva la corrente
 
-        if (updateHashMap(transistorConnectedToPinA, ID, fromComponentToA, pinA)) {//pinA
-            return;
-        }
-        if (updateHashMap(transistorConnectedToPinB, ID, null, pinB)) {//pinB
-            return;
-        }
+        updateHashMap(transistorConnectedToPinA, ID, fromComponentToA, pinA);
+        updateHashMap(transistorConnectedToPinB, ID, null, pinB);
         updateHashMap(transistorConnectedToPinC, ID, fromComponentToC, pinC);
 
     }
@@ -127,8 +123,8 @@ public class Transistor implements Component, Serializable {
      * @param toCompare         the component that you want to eliminate
      * @param arrayOfComponents array of components to check -> fromComponentA/C
      */
-    private boolean updateHashMap(HashMap<Integer, Component> hashMap, Component toCompare, ArrayList<Component> arrayOfComponents, int pin) {
-        boolean grounded = false, containsTheComponent = false, returnValue = false;
+    private void updateHashMap(HashMap<Integer, Component> hashMap, Component toCompare, ArrayList<Component> arrayOfComponents, int pin) {
+        boolean grounded = false, containsTheComponent = false;
         for (Component c : hashMap.values()) {
             if (c == toCompare) {//devo controllare se ci sono altri componenti da cui arriva la corrente
                 containsTheComponent = true;
@@ -149,13 +145,11 @@ public class Transistor implements Component, Serializable {
         }
         if (containsTheComponent) {
             hashMap.remove(toCompare.getIDComponent());
-            returnValue = true;
             if (pin == pinB && hashMap.size() == 0) {
                 setState(pin, false);
             }
 
         }
-        return returnValue;
     }
 
     /**
@@ -656,6 +650,7 @@ public class Transistor implements Component, Serializable {
     }
 
     @Serial
+    @SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         this.A = stream.readBoolean();
         this.B = stream.readBoolean();
@@ -666,8 +661,8 @@ public class Transistor implements Component, Serializable {
         this.AisUpdated = stream.readBoolean();
         this.CisUpdated = stream.readBoolean();
         this.isGrounded = stream.readBoolean();
-        this.fromComponentToA = (ArrayList) stream.readObject();
-        this.fromComponentToC = (ArrayList) stream.readObject();
+        this.fromComponentToA = (ArrayList<Component>) stream.readObject();
+        this.fromComponentToC = (ArrayList<Component>) stream.readObject();
         this.AisGrounded = stream.readBoolean();
         this.CisGrounded = stream.readBoolean();
         this.groundUpdate = stream.readBoolean();
@@ -677,9 +672,9 @@ public class Transistor implements Component, Serializable {
         this.sizeHeight = stream.readInt();
         this.ID = stream.readInt();
         this.parent = (JPanel) stream.readObject();
-        this.transistorConnectedToPinA = (HashMap) stream.readObject();
-        this.transistorConnectedToPinB = (HashMap) stream.readObject();
-        this.transistorConnectedToPinC = (HashMap) stream.readObject();
+        this.transistorConnectedToPinA = (HashMap<Integer,Component>) stream.readObject();
+        this.transistorConnectedToPinB = (HashMap<Integer,Component>) stream.readObject();
+        this.transistorConnectedToPinC = (HashMap<Integer,Component>) stream.readObject();
         this.toldToUpdate = (Component) stream.readObject();
         initialize();
     }
