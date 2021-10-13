@@ -66,11 +66,6 @@ public class Gnd implements Component, Serializable {
     }
 
     @Override
-    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
-        return connectedComponent;
-    }
-
-    @Override
     public void updateAfterConnection() {
 
     }
@@ -142,7 +137,7 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public int getPinFromAnotherObj(Component ObgID) {
-        return 0;
+        return 1;
     }
 
     @Override

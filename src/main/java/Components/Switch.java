@@ -34,16 +34,17 @@ public class Switch implements Component, Serializable {
     @Override
     public void paint(Graphics g) {
         g.setColor(Color.BLACK);
-        g.drawRect(x, y, sizeWidth, sizeHeight-8);
-        //g.fillRect(x, y, sizeWidth, sizeHeight);
+        g.fillRect(x, y, sizeWidth, sizeHeight-7);
+        g.setColor(Color.white);
+        g.fillRect(x+3, y+3, sizeWidth-6, sizeHeight-7-6);
         if (state) {
             g.setColor(Color.RED);
-            g.drawString("1", x + sizeWidth/2 - 3, y + sizeHeight / 2);
+            g.drawString("1", x + sizeWidth/2 - 3, y + sizeHeight / 2 + 1);
             g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);
         } else {
+            g.setColor(Color.BLACK);
             g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);
-            g.drawString("0", x +  sizeWidth/2 - 3, y + sizeHeight / 2);
-
+            g.drawString("0", x +  sizeWidth/2 - 3, y + sizeHeight / 2 + 1);
         }
     }
 
@@ -74,18 +75,11 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
-    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
-        return connectedComponent;
-    }
-
-    @Override
     public void updateAfterConnection() {
-
     }
 
     @Override
     public void resetPinIfContain(Component ID) {
-
     }
 
     @Override
@@ -191,7 +185,7 @@ public class Switch implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(HashMap) stream.readObject();
+        this.connectedComponent =(HashMap<Integer, Component>) stream.readObject();
     }
 
 }

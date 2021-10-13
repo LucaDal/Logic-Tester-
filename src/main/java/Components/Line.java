@@ -7,7 +7,7 @@ import java.io.Serializable;
 public class Line implements Serializable{
     @Serial
     private static final long serialVersionUID = 5799091444127658990L;
-    private int id1, id2, pin1, pin2;
+    private int id1 = 0, id2 = 0, pin1 = 0, pin2 = 0;
 
     public Line(int id1, int pin1, int id2, int pin2) {
         this.id1 = id1;

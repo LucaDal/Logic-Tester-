@@ -65,11 +65,6 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
-    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
-        return connectedComponent;
-    }
-
-    @Override
     public void updateAfterConnection() {
 
     }

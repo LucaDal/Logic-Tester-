@@ -4,7 +4,6 @@ import java.awt.*;
 import java.util.HashMap;
 
 public interface Component {
-    final String type = "";
     String getType();
     void paint(Graphics g);
     Point getPosition();
@@ -13,13 +12,6 @@ public interface Component {
     int getIDComponent();
     void setPosition(Point position);
 
-    /**
-     * given a pin this function will return its transistorConnectedToPin# relative to the pin insered
-     *
-     * @param pin to ask the HashMap
-     * @return an HashMap where into there are the component connected to, or null if its hash map is empty
-     */
-    HashMap<Integer,Component> getConnectionsFrom(int pin);
     /**
      * called after two component will be connected
      */
@@ -42,16 +34,27 @@ public interface Component {
 
     void removeConnection();
 
+    /**
+     * used usually from other transistor to check at what pin they are connected
+     * @return the name of the object
+     */
     Component returnObjName();
     /**
      * given a point it will tell in which place it has been clicked;
      * @param x
      * @param y
-     * @return retrurn the X: ID of the component clicked and Y: the pin clicked
+     * @return retrurn the X: ID of the component clicked and Y: the pin clicked - 0 is the invalid pin
      */
     Point inputTarget(int x,int y);
     boolean getState(int pin);
     void setState(int pin,boolean state);
+
+    /**
+     * return the pin which the caller is connected
+     *
+     * @param ObgID name of the component(Obg) that call this function
+     * @return the pin number
+     */
     int getPinFromAnotherObj(Component ObgID);
     void tellToUpdate(Component fromThisComponent);
     void update();

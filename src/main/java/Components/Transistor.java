@@ -11,21 +11,21 @@ import java.util.HashMap;
 public class Transistor implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = -8082050773708616884L;
-    boolean A, B, C, updated, fromAtoC, BisUpdated, lastState,
+    private boolean A, B, C, updated, fromAtoC, BisUpdated, lastState,
             AisUpdated, CisUpdated, isGrounded, AisGrounded, CisGrounded, groundUpdate;
 
-    final int pinA = 3, pinB = 2, pinC = 9;
-    final String type = "transistor";
-    Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
-    int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
+    static final int pinA = 3, pinB = 2, pinC = 9;
+    final private String type = "transistor";
+    private Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
+    private int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
     JPanel parent;
-    HashMap<Integer, Component> transistorConnectedToPinA = new HashMap<>();
-    HashMap<Integer, Component> transistorConnectedToPinB = new HashMap<>();
-    HashMap<Integer, Component> transistorConnectedToPinC = new HashMap<>();
-    Component toldToUpdate = null;
-    Component toConnect;
-    ArrayList<Component> fromComponentToA = new ArrayList<>();
-    ArrayList<Component> fromComponentToC = new ArrayList<>();
+    private HashMap<Integer, Component> transistorConnectedToPinA = new HashMap<>();
+    private HashMap<Integer, Component> transistorConnectedToPinB = new HashMap<>();
+    private HashMap<Integer, Component> transistorConnectedToPinC = new HashMap<>();
+    private Component toldToUpdate = null;
+    private Component toConnect;
+    private ArrayList<Component> fromComponentToA = new ArrayList<>();
+    private ArrayList<Component> fromComponentToC = new ArrayList<>();
 
     public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -85,18 +85,6 @@ public class Transistor implements Component, Serializable {
     public void setPosition(Point position) {
         this.x = position.x;
         this.y = position.y;
-    }
-
-    @Override
-    public HashMap<Integer, Component> getConnectionsFrom(int pin) {
-        if (pin == pinA) {
-            return transistorConnectedToPinA;
-        }
-        if (pin == pinB) {
-            return transistorConnectedToPinB;
-        }
-        return transistorConnectedToPinC;
-
     }
 
     /**
@@ -202,7 +190,7 @@ public class Transistor implements Component, Serializable {
         if (numberTarget == pinC) { //pin C
             return new Point(ID, pinC);
         }
-        return new Point(ID, 10);
+        return new Point(ID, 0);
     }
 
     /**
