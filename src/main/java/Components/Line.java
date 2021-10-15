@@ -40,9 +40,24 @@ public class Line implements Serializable{
         if (this.id1 == id) {
             return true;
         }
-        if (this.id2 == id) {
+        return this.id2 == id;
+    }
+
+    public boolean contain(int id,int pin) {
+        if (this.id1 == id && pin1 == pin) {
             return true;
         }
-        return false;
+        return this.id2 == id && this.pin2 == pin;
+    }
+
+    /**
+     *
+     * @return the component connected to the ID given
+     */
+    public int returnPinConnectedToTheID(int ID){
+        if (ID == id1){
+            return pin2;
+        }
+        return pin1;
     }
 }

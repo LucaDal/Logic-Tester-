@@ -22,12 +22,15 @@ public class DisplayFrame extends JFrame {
         add(menuInterfaces,BorderLayout.NORTH);
         add(buttonsInterfaces, BorderLayout.LINE_START);
         add(inter, BorderLayout.CENTER);
+       // setUndecorated(true);
         pack();
-        setMinimumSize(new Dimension( 200,280));
-        setResizable(true);
-        setLocationRelativeTo(null);
-        setVisible(true);
+        setMinimumSize(new Dimension( 200,280));//TODO definire a fine lavoro
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(true);
+        setVisible(true);
+        //setExtendedState(JFrame.MAXIMIZED_BOTH);
+
     }
 
 

@@ -1,5 +1,8 @@
 package Components;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -15,25 +18,27 @@ public class Transistor implements Component, Serializable {
             AisUpdated, CisUpdated, isGrounded, AisGrounded, CisGrounded, groundUpdate;
 
     static final int pinA = 3, pinB = 2, pinC = 9;
-    final private String type = "transistor";
     private Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
     private int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
     JPanel parent;
-    private HashMap<Integer, Component> transistorConnectedToPinA = new HashMap<>();
-    private HashMap<Integer, Component> transistorConnectedToPinB = new HashMap<>();
-    private HashMap<Integer, Component> transistorConnectedToPinC = new HashMap<>();
     private Component toldToUpdate = null;
     private Component toConnect;
     private ArrayList<Component> fromComponentToA = new ArrayList<>();
     private ArrayList<Component> fromComponentToC = new ArrayList<>();
+    private Multimap<Integer, Component> transistorConnectedToPinA = ArrayListMultimap.create();
+    private Multimap<Integer, Component> transistorConnectedToPinB = ArrayListMultimap.create();
+    private Multimap<Integer, Component> transistorConnectedToPinC = ArrayListMultimap.create();
+    private boolean askedPinA = false,askedPinB = false;
+    HashMap<Line, ArrayList<Integer>> lines;
 
-    public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
+    public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight,HashMap<Line, ArrayList<Integer>> lines) {
         this.parent = parent;
         this.ID = ID;
         this.x = x - sizeWidth / pinB;
         this.y = y - sizeHeight / pinB;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
+        this.lines = lines;
         initialize();
         A = B = C = updated = fromAtoC = BisUpdated = AisUpdated = CisUpdated
                 = AisGrounded = CisGrounded = groundUpdate = lastState = false;
@@ -87,6 +92,12 @@ public class Transistor implements Component, Serializable {
         this.y = position.y;
     }
 
+    @Override
+    public void resetAskedPin() {
+        askedPinA = false;
+        askedPinB = false;
+    }
+
     /**
      * tell if the id given is connected to this transistor, if does it disconnect
      * and reset the pin following setConection's rules
@@ -111,7 +122,7 @@ public class Transistor implements Component, Serializable {
      * @param toCompare         the component that you want to eliminate
      * @param arrayOfComponents array of components to check -> fromComponentA/C
      */
-    private void updateHashMap(HashMap<Integer, Component> hashMap, Component toCompare, ArrayList<Component> arrayOfComponents, int pin) {
+    private void updateHashMap(Multimap<Integer, Component> hashMap, Component toCompare, ArrayList<Component> arrayOfComponents, int pin) {
         boolean grounded = false, containsTheComponent = false;
         for (Component c : hashMap.values()) {
             if (c == toCompare) {//devo controllare se ci sono altri componenti da cui arriva la corrente
@@ -132,7 +143,7 @@ public class Transistor implements Component, Serializable {
             isGrounded = false;
         }
         if (containsTheComponent) {
-            hashMap.remove(toCompare.getIDComponent());
+            hashMap.remove(toCompare.getIDComponent(),toCompare);
             if (pin == pinB && hashMap.size() == 0) {
                 setState(pin, false);
             }
@@ -156,7 +167,7 @@ public class Transistor implements Component, Serializable {
      *
      * @param hm HashMap of the pin to check
      */
-    private void removeComponentFromHashMap(HashMap<Integer, Component> hm) {
+    private void removeComponentFromHashMap(Multimap<Integer, Component> hm) {
         for (Component c : hm.values()) {
             c.resetPinIfContain(this);
         }
@@ -328,7 +339,7 @@ public class Transistor implements Component, Serializable {
      * @param hashMap to check
      * @return false if none of the component inside the hashMap is grouned, true otherwise
      */
-    private boolean checkIfGrounded(HashMap<Integer, Component> hashMap) {
+    private boolean checkIfGrounded(Multimap<Integer, Component> hashMap) {
         boolean grounded = false;
         for (Component c : hashMap.values()) {
             if (c.isGrounded() && toldToUpdate != c) {
@@ -344,9 +355,14 @@ public class Transistor implements Component, Serializable {
      *
      * @param hashMap of the component connected to the pin
      */
-    private void updateHashMapToGround(HashMap<Integer, Component> hashMap) {
+    private void updateHashMapToGround(Multimap<Integer, Component> hashMap) {
+        Component temp = null;
         for (Component c : hashMap.values()) {
             if (c != toldToUpdate) {
+                if (temp != c){
+                    c.resetAskedPin();
+                    temp = c;
+                }
                 c.tellToUpdate(this);
                 c.setGrounded(true, c.getPinFromAnotherObj(this));
             }
@@ -359,8 +375,13 @@ public class Transistor implements Component, Serializable {
      *
      * @param hashMap to updated pin to ground
      */
-    private void tellToUpdateAfterGrounding(HashMap<Integer, Component> hashMap) {//TODO probabilmente è inutile eccetto per l'update
+    private void tellToUpdateAfterGrounding(Multimap<Integer, Component> hashMap) {//TODO probabilmente è inutile eccetto per l'update
+        Component temp = null;
         for (Component c : hashMap.values()) {
+            if (temp != c){
+                c.resetAskedPin();
+                temp = c;
+            }
             if (c.getType().equalsIgnoreCase("transistor")) {
                 if (c.isGrounded() && !isGrounded) {
                     c.setGrounded(false, c.getPinFromAnotherObj(this));
@@ -391,8 +412,13 @@ public class Transistor implements Component, Serializable {
         toldToUpdate = null;
     }
 
-    private void updateTransistor(HashMap<Integer, Component> hashMap, boolean pinState) {
+    private void updateTransistor(Multimap<Integer, Component> hashMap, boolean pinState) {
+        Component temp = null;
         for (Component c : hashMap.values()) {
+            if (temp != c){
+                c.resetAskedPin();
+                temp = c;
+            }
             if (c != toldToUpdate) {
                 c.tellToUpdate(this);
                 c.setState(c.getPinFromAnotherObj(this), pinState);
@@ -451,20 +477,14 @@ public class Transistor implements Component, Serializable {
                 if (state) {//B = true
                     if (CisGrounded) {
                         isGrounded = true;
-                        for (Component componentA : transistorConnectedToPinA.values()) {
-                            componentA.tellToUpdate(this);
-                            componentA.setGrounded(true, componentA.getPinFromAnotherObj(this));
-                        }
+                        setGroundCall(transistorConnectedToPinA);
                         if (A) {
                             AisUpdated = true;
                             A = false;
                         }
                     } else if (AisGrounded) {
                         isGrounded = true;
-                        for (Component componentC : transistorConnectedToPinC.values()) {
-                            componentC.tellToUpdate(this);
-                            componentC.setGrounded(true, componentC.getPinFromAnotherObj(this));
-                        }
+                        setGroundCall(transistorConnectedToPinC);
                         if (C) {
                             CisUpdated = true;
                             C = false;
@@ -552,6 +572,17 @@ public class Transistor implements Component, Serializable {
         //System.out.println("ID " + ID + ": (A=" + A + "),(B=" + B + "),(C=" + C + ")");
         update();
     }
+    void setGroundCall(Multimap<Integer, Component> pinToUpdate){
+        Component temp = null;
+        for (Component c : pinToUpdate.values()) {
+            if (temp != c){
+                c.resetAskedPin();
+                temp = c;
+            }
+            c.tellToUpdate(this);
+            c.setGrounded(true, c.getPinFromAnotherObj(this));
+        }
+    }
 
     /**
      * is needed from another transistor to get the pin where this transistor is connected
@@ -559,25 +590,27 @@ public class Transistor implements Component, Serializable {
      * @param obgID to compare with
      * @return the number of the pin, A = 3, B = 2, C = 9
      */
-    @Override
+   @Override
     public int getPinFromAnotherObj(Component obgID) {
 
-        if (isContainedIn(transistorConnectedToPinA, obgID)) {
+        if (!askedPinA && transistorConnectedToPinA.containsValue(obgID)) {
+            askedPinA = true;
             return pinA;
         }
-        if (isContainedIn(transistorConnectedToPinB, obgID)) {
+        if (transistorConnectedToPinB.containsValue(obgID) && !askedPinB) {
+            askedPinB = true;
             return pinB;
         }
         return pinC;
-    }
 
-    private boolean isContainedIn(HashMap<Integer, Component> hashMap, Component obgToCheck) {
-        for (Component c : hashMap.values()) {
-            if (c == obgToCheck) {
-                return true;
+    }
+    public int getPinFromAnotherObj(int ID,int pin) {
+
+        for (Line key : lines.keySet()){
+            if(key.contain(ID,pin)){
+                return key.returnPinConnectedToTheID(ID);
             }
         }
-        return false;
     }
 
     @Override
@@ -587,10 +620,10 @@ public class Transistor implements Component, Serializable {
 
     @Override
     public String getType() {
-        return type;
+        return "transistor";
     }
 
-    public void paint(Graphics g) {//TODO draw rect where the points are selectable
+    public void paintComponent(Graphics g) {//TODO draw rect where the points are selectable
         if (!A && !B && !C)
             g.drawImage(img, x, y, parent);
         if (A && !B && !C)
@@ -660,9 +693,9 @@ public class Transistor implements Component, Serializable {
         this.sizeHeight = stream.readInt();
         this.ID = stream.readInt();
         this.parent = (JPanel) stream.readObject();
-        this.transistorConnectedToPinA = (HashMap<Integer,Component>) stream.readObject();
-        this.transistorConnectedToPinB = (HashMap<Integer,Component>) stream.readObject();
-        this.transistorConnectedToPinC = (HashMap<Integer,Component>) stream.readObject();
+        this.transistorConnectedToPinA = (Multimap<Integer, Component>) stream.readObject();
+        this.transistorConnectedToPinB = (Multimap<Integer, Component>) stream.readObject();
+        this.transistorConnectedToPinC = (Multimap<Integer, Component>) stream.readObject();
         this.toldToUpdate = (Component) stream.readObject();
         initialize();
     }

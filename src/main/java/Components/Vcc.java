@@ -1,5 +1,8 @@
 package Components;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +22,7 @@ public class Vcc implements Component, Serializable {
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
     Component toldToUpdate = null;
-    HashMap<Integer, Component> connectedComponent = new HashMap<>();
+    Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
 
     public Vcc(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -65,6 +68,10 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
+    public void resetAskedPin() {
+    }
+
+    @Override
     public void updateAfterConnection() {
 
     }
@@ -72,7 +79,7 @@ public class Vcc implements Component, Serializable {
     @Override
     public void resetPinIfContain(Component ID) {
         if (connectedComponent.containsValue(ID)) {
-            connectedComponent.remove(ID);
+            connectedComponent.remove(ID.getIDComponent(),ID);
         }
         checkIfConnectedToSomeGroundedComp();
     }
@@ -117,8 +124,13 @@ public class Vcc implements Component, Serializable {
     @Override
     public void update() {
         checkIfConnectedToSomeGroundedComp();
+        Component temp = null;
         if (!imBeenDeleted) {
             for (Component c : connectedComponent.values()) {
+                if (temp != c){
+                    c.resetAskedPin();
+                    temp = c;
+                }
                 int pinToUpdate = c.getPinFromAnotherObj(this);
                 if (c != toldToUpdate) {
                     c.tellToUpdate(this);
@@ -173,7 +185,7 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public int getPinFromAnotherObj(Component ObgID) {
-        return 0;
+        return 1;
     }
 
 
@@ -187,7 +199,7 @@ public class Vcc implements Component, Serializable {
         return type;
     }
 
-    public void paint(Graphics g) {
+    public void paintComponent(Graphics g) {
         g.drawImage(img, x, y, parent);
     }
 
@@ -214,7 +226,7 @@ public class Vcc implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(HashMap) stream.readObject();
+        this.connectedComponent =(Multimap<Integer, Component>) stream.readObject();
         this.toldToUpdate =(Component)stream.readObject();
         initialize();
     }

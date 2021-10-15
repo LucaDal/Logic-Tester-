@@ -5,12 +5,17 @@ import java.util.HashMap;
 
 public interface Component {
     String getType();
-    void paint(Graphics g);
+    void paintComponent(Graphics g);
     Point getPosition();
     int getSizeWidth();
     int getSizeHeight();
     int getIDComponent();
     void setPosition(Point position);
+
+    /**
+     * used to reset askedpinA/B into transistor class to false, dont use it into transistor class
+     */
+    void resetAskedPin();
 
     /**
      * called after two component will be connected

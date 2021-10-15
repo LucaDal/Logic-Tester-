@@ -1,5 +1,8 @@
 package Components;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -15,12 +18,11 @@ public class Gnd implements Component, Serializable {
 
     @Serial
     private static final long serialVersionUID = 6584013415603752513L;
-    final String type = "gnd";
-    Image img;
-    int sizeWidth, sizeHeight, x, y, ID;
-    JPanel parent;
-    HashMap<Integer, Component> connectedComponent = new HashMap<>();
-    Component toldToUpdate = null;
+    private Image img;
+    private int sizeWidth, sizeHeight, x, y, ID;
+    private JPanel parent;
+    private Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
+    private Component toldToUpdate = null;
 
     public Gnd(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -63,6 +65,10 @@ public class Gnd implements Component, Serializable {
     public void setPosition(Point position) {
         this.x = position.x;
         this.y = position.y;
+    }
+
+    @Override
+    public void resetAskedPin() {
     }
 
     @Override
@@ -111,7 +117,6 @@ public class Gnd implements Component, Serializable {
             c.setGrounded(false, c.getPinFromAnotherObj(this));
             c.resetPinIfContain(this);
             c.tellToUpdate(null);
-
         }
     }
 
@@ -147,17 +152,23 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public void update() {
+        Component temp = null;
         for (Component c : connectedComponent.values()) {
+            if (temp != c){
+                c.resetAskedPin();
+                temp = c;
+            }
             c.setGrounded(true,c.getPinFromAnotherObj(this));
         }
     }
 
     @Override
     public String getType() {
+        String type = "gnd";
         return type;
     }
 
-    public void paint(Graphics g) {
+    public void paintComponent(Graphics g) {
         g.drawImage(img, x, y, parent);
     }
 
@@ -181,7 +192,7 @@ public class Gnd implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(HashMap)stream.readObject();
+        this.connectedComponent =(Multimap<Integer, Component>)stream.readObject();
         this.toldToUpdate =(Component)stream.readObject();
         initialize();
     }

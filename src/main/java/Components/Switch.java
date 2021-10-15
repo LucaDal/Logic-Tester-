@@ -1,5 +1,8 @@
 package Components;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -15,7 +18,7 @@ public class Switch implements Component, Serializable {
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
     Component toldToUpdate = null;
-    HashMap<Integer, Component> connectedComponent = new HashMap<>();
+    private Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
 
     public Switch(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {//TODO ampliare grandezza per far entrare il pin
         this.parent = parent;
@@ -32,7 +35,7 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
-    public void paint(Graphics g) {
+    public void paintComponent(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect(x, y, sizeWidth, sizeHeight-7);
         g.setColor(Color.white);
@@ -72,6 +75,10 @@ public class Switch implements Component, Serializable {
     public void setPosition(Point position) {
         this.x = position.x;
         this.y = position.y;
+    }
+
+    @Override
+    public void resetAskedPin() {
     }
 
     @Override
@@ -157,7 +164,12 @@ public class Switch implements Component, Serializable {
 
     @Override
     public void update() {
+        Component temp = null;
         for (Component c : connectedComponent.values()) {
+            if (temp != c){
+                c.resetAskedPin();
+                temp = c;
+            }
             int pinToUpdate = c.getPinFromAnotherObj(this);
             if (c != toldToUpdate) {
                 c.tellToUpdate(this);
@@ -185,7 +197,7 @@ public class Switch implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(HashMap<Integer, Component>) stream.readObject();
+        this.connectedComponent =(Multimap<Integer, Component>) stream.readObject();
     }
 
 }

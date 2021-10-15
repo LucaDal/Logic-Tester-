@@ -6,22 +6,22 @@ import Savings.WriteObjects;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 
-public class Interface extends JPanel implements MouseListener, MouseMotionListener {
-    private Dimension size = new Dimension(900, 700);
+public class Interface extends JPanel implements MouseListener, MouseMotionListener,MouseWheelListener {
     private HashMap<Integer, Component> componentMap = new HashMap<>();
     private HashMap<Line, ArrayList<Integer>> lines = new HashMap<>();
     private ArrayList<Line> tempLines = new ArrayList<>();
-
+    private  double zoomFactor =1, prevZoomFactor=1,xOffset,yOffset;
     private int IDComponent = 1, IdReturnedTemp, IdComponentMoved, startDraggingX, startDraggingY;
     //dont use pin = 1 - 4 - 5 -> are used into returnPosition
     boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false, debugIsSelected = false,
-            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false,
+            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false,zoom = false,
             linesAlreadyEliminated = false, bitDisplayIsSelected = false;
     private Point tempConnectionPointFirstCall = new Point();
 
@@ -30,20 +30,38 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     public Interface() {
         setBackground(Color.LIGHT_GRAY);
+        Dimension size = new Dimension(900, 700);
         setPreferredSize(size);
         setFocusable(true);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addMouseWheelListener(this);
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        Graphics2D g2 = (Graphics2D) g;
+        if (zoom) {
+            AffineTransform at = new AffineTransform();
+            double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
+            double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
+            double zoomDiv = zoomFactor / prevZoomFactor;
+            xOffset = (zoomDiv) * (xOffset) + (1 - zoomDiv) * xRel;
+            yOffset = (zoomDiv) * (yOffset) + (1 - zoomDiv) * yRel;
+            at.translate(xOffset, yOffset);
+            at.scale(zoomFactor, zoomFactor);
+            prevZoomFactor = zoomFactor;
+            g2.transform(at);
+            zoom = false;
+        }
+
         g.setColor(Color.black);
         for (ArrayList<Integer> l : lines.values()) {
             g.drawLine(l.get(0), l.get(1), l.get(2), l.get(3));
         }
         for (Components.Component c : componentMap.values()) {
-            c.paint(g);
+            c.paintComponent(g);
         }
     }
 
@@ -97,7 +115,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
         if (transistorToSet) {
             System.out.println("adding a transistor n: " + IDComponent);
-            componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30));
+            componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30,lines));
             IDComponent++;
         }
         if (vccToSet) {
@@ -125,6 +143,9 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
                 componentMap.get(IdReturned).removeConnection();
                 componentMap.remove(IdReturned);
+                if (componentMap.size() == 0){
+                    IDComponent = 1;
+                }
             }
         }
         if (selectIsSelected) {
@@ -133,7 +154,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             if (IdReturned != 0) {
                 Components.Component componentReturned = componentMap.get(IdReturned);
                 if (componentReturned.getType().equalsIgnoreCase("switch") && componentReturned.inputTarget(e.getX(), e.getY()).y == 0) {
-                    componentReturned.setState(1, !componentReturned.getState(0));
+                    try{
+
+                        componentReturned.setState(1, !componentReturned.getState(0));
+                    }catch(StackOverflowError error){
+                        error.printStackTrace();
+                        System.out.println("overflow dopo click dello switch");
+                    }
                 } else if (!setConnection) {
                     IdReturnedTemp = IdReturned;
                     if ((tempConnectionPointFirstCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
@@ -304,7 +331,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         Components.Component firstComponent = componentMap.get(firstIDComponentPin.x).returnObjName();
         Components.Component secondComponent = componentMap.get(secondIDComponentPin.x).returnObjName();
         try {
-
             /* Aggiorno prima il transistor */
             firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
             secondComponent.setConnection(firstComponent, secondIDComponentPin.y, firstComponent.getState(firstIDComponentPin.y));
@@ -507,5 +533,21 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     public void addBitDisplay() {
         resetAll();
         bitDisplayIsSelected = true;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        zoom = true;
+        resetAll();
+        //Zoom in
+        if (e.getWheelRotation() < 0) {
+            zoomFactor *= 1.1;
+            repaint();
+        }
+        //Zoom out
+        if (e.getWheelRotation() > 0) {
+            zoomFactor /= 1.1;
+            repaint();
+        }
     }
 }
