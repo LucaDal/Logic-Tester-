@@ -8,6 +8,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Switch implements Component, Serializable {
@@ -18,9 +19,8 @@ public class Switch implements Component, Serializable {
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
     Component toldToUpdate = null;
-    private Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
-
-    public Switch(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {//TODO ampliare grandezza per far entrare il pin
+    private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
+    public Switch(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
         this.x = x - sizeWidth / 2;
@@ -77,9 +77,7 @@ public class Switch implements Component, Serializable {
         this.y = position.y;
     }
 
-    @Override
-    public void resetAskedPin() {
-    }
+
 
     @Override
     public void updateAfterConnection() {
@@ -100,14 +98,14 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
-    public void setConnection(Component anotherComponent, int pin, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), anotherComponent.returnObjName());
+    public void setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
+        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
     }
 
     @Override
     public void removeConnection() {
-        for (Component c : connectedComponent.values()) {
-            c.resetPinIfContain(this);
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            cp.getComponent().resetPinIfContain(this);
         }
     }
 
@@ -152,28 +150,17 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
-    public int getPinFromAnotherObj(Component ObgID) {
-        return 0;
-    }
-
-
-    @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
     }
 
     @Override
     public void update() {
-        Component temp = null;
-        for (Component c : connectedComponent.values()) {
-            if (temp != c){
-                c.resetAskedPin();
-                temp = c;
-            }
-            int pinToUpdate = c.getPinFromAnotherObj(this);
-            if (c != toldToUpdate) {
-                c.tellToUpdate(this);
-                c.setState(pinToUpdate, this.state);
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            Component temp = cp.getComponent();
+            if (temp != toldToUpdate) {
+                temp.tellToUpdate(this);
+                temp.setState(cp.getPin(), this.state);
             }
         }
     }
@@ -197,7 +184,7 @@ public class Switch implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(Multimap<Integer, Component>) stream.readObject();
+        this.connectedComponent =(Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
     }
 
 }

@@ -1,7 +1,6 @@
 package Components;
 
 import java.awt.*;
-import java.util.HashMap;
 
 public interface Component {
     String getType();
@@ -12,10 +11,6 @@ public interface Component {
     int getIDComponent();
     void setPosition(Point position);
 
-    /**
-     * used to reset askedpinA/B into transistor class to false, dont use it into transistor class
-     */
-    void resetAskedPin();
 
     /**
      * called after two component will be connected
@@ -33,9 +28,10 @@ public interface Component {
      * set a connection between this component and  another Component
      * @param anotherComponent to connect with
      * @param pin of this transistor to set to
+     * @param otherPin - pin of the other component that i'm setting to
      * @param state state of the component which connect to
      */
-    void setConnection(Component anotherComponent,int pin,boolean state);
+    void setConnection(Component anotherComponent,int pin,int otherPin,boolean state);
 
     void removeConnection();
 
@@ -53,14 +49,6 @@ public interface Component {
     Point inputTarget(int x,int y);
     boolean getState(int pin);
     void setState(int pin,boolean state);
-
-    /**
-     * return the pin which the caller is connected
-     *
-     * @param ObgID name of the component(Obg) that call this function
-     * @return the pin number
-     */
-    int getPinFromAnotherObj(Component ObgID);
     void tellToUpdate(Component fromThisComponent);
     void update();
 }

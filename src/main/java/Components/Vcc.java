@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
 
 public class Vcc implements Component, Serializable {
     @Serial
@@ -22,7 +21,7 @@ public class Vcc implements Component, Serializable {
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
     Component toldToUpdate = null;
-    Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
+    Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
 
     public Vcc(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -68,10 +67,6 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
-    public void resetAskedPin() {
-    }
-
-    @Override
     public void updateAfterConnection() {
 
     }
@@ -106,9 +101,9 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
-    public void setConnection(Component anotherComponent, int ID, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), anotherComponent.returnObjName());
-        if (anotherComponent.isGrounded() && (anotherComponent.getPinFromAnotherObj(this) != 2)) {
+    public void setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
+        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+        if (anotherComponent.isGrounded() && (otherPin != 2)) {
             setGrounded(true, 0);
         }
     }
@@ -116,28 +111,24 @@ public class Vcc implements Component, Serializable {
     @Override
     public void removeConnection() {
         imBeenDeleted = true;
-        for (Component c : connectedComponent.values()) {
-            c.resetPinIfContain(this);
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            cp.getComponent().resetPinIfContain(this);
         }
     }
 
     @Override
     public void update() {
         checkIfConnectedToSomeGroundedComp();
-        Component temp = null;
         if (!imBeenDeleted) {
-            for (Component c : connectedComponent.values()) {
-                if (temp != c){
-                    c.resetAskedPin();
-                    temp = c;
-                }
-                int pinToUpdate = c.getPinFromAnotherObj(this);
-                if (c != toldToUpdate) {
-                    c.tellToUpdate(this);
-                    c.setState(pinToUpdate, this.state);
-                } else if (!c.getState(c.getPinFromAnotherObj(this)) && state) {
-                    c.tellToUpdate(this);
-                    c.setState(pinToUpdate, this.state);
+            for (ComponentAndRelativePin cp : connectedComponent.values()) {
+                Component temp = cp.getComponent();
+                int pinToUpdate = cp.getPin();
+                if (temp != toldToUpdate) {
+                    temp.tellToUpdate(this);
+                    temp.setState(pinToUpdate, this.state);
+                } else if (!temp.getState(pinToUpdate) && state) {
+                    temp.tellToUpdate(this);
+                    temp.setState(pinToUpdate, this.state);
                 }
             }
         }
@@ -146,8 +137,9 @@ public class Vcc implements Component, Serializable {
 
     void checkIfConnectedToSomeGroundedComp() {
         boolean flag = false;
-        for (Component c : connectedComponent.values()) {
-            if (c.isGrounded() && c.getPinFromAnotherObj(this) != 2) {
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            Component temp = cp.getComponent();
+            if (temp.isGrounded() && cp.getPin() != 2) {
                 flag = true;
             }
         }
@@ -164,7 +156,7 @@ public class Vcc implements Component, Serializable {
     }
 
     /**
-     * @param pin
+     * @param pin not used in this class
      * @return state of this pin, usally always true, when not connnected to GND
      */
     @Override
@@ -181,11 +173,6 @@ public class Vcc implements Component, Serializable {
     @Override
     public Point inputTarget(int x, int y) {
         return new Point(ID, 1);
-    }
-
-    @Override
-    public int getPinFromAnotherObj(Component ObgID) {
-        return 1;
     }
 
 
@@ -226,7 +213,7 @@ public class Vcc implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(Multimap<Integer, Component>) stream.readObject();
+        this.connectedComponent =(Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
         this.toldToUpdate =(Component)stream.readObject();
         initialize();
     }

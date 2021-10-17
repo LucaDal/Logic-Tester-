@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
 
 
 public class Gnd implements Component, Serializable {
@@ -21,7 +20,7 @@ public class Gnd implements Component, Serializable {
     private Image img;
     private int sizeWidth, sizeHeight, x, y, ID;
     private JPanel parent;
-    private Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
+    private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
     private Component toldToUpdate = null;
 
     public Gnd(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
@@ -68,10 +67,6 @@ public class Gnd implements Component, Serializable {
     }
 
     @Override
-    public void resetAskedPin() {
-    }
-
-    @Override
     public void updateAfterConnection() {
 
     }
@@ -98,25 +93,26 @@ public class Gnd implements Component, Serializable {
 
     /**
      * then set the other component to ground because this class is gnd so..
-     *
-     * @param anotherComponent to connect with
+     *  @param anotherComponent to connect with
      * @param pin              of this transistor to set to
+     * @param otherPin
      * @param state            state of the component which connect to
      */
     @Override
-    public void setConnection(Component anotherComponent, int pin, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), anotherComponent.returnObjName());
-        anotherComponent.setGrounded(true, anotherComponent.getPinFromAnotherObj(this));
+    public void setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
+        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+        anotherComponent.setGrounded(true, otherPin);
     }
 
 
     @Override
     public void removeConnection() {
-        for (Component c : connectedComponent.values()) {
-            c.tellToUpdate(this);
-            c.setGrounded(false, c.getPinFromAnotherObj(this));
-            c.resetPinIfContain(this);
-            c.tellToUpdate(null);
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            Component temp = cp.getComponent();
+            temp.tellToUpdate(this);
+            temp.setGrounded(false, cp.getPin());
+            temp.resetPinIfContain(this);
+            temp.tellToUpdate(null);
         }
     }
 
@@ -141,24 +137,14 @@ public class Gnd implements Component, Serializable {
     }
 
     @Override
-    public int getPinFromAnotherObj(Component ObgID) {
-        return 1;
-    }
-
-    @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
     }
 
     @Override
     public void update() {
-        Component temp = null;
-        for (Component c : connectedComponent.values()) {
-            if (temp != c){
-                c.resetAskedPin();
-                temp = c;
-            }
-            c.setGrounded(true,c.getPinFromAnotherObj(this));
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            cp.getComponent().setGrounded(true,cp.getPin());
         }
     }
 
@@ -192,7 +178,7 @@ public class Gnd implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(Multimap<Integer, Component>)stream.readObject();
+        this.connectedComponent =(Multimap<Integer, ComponentAndRelativePin>)stream.readObject();
         this.toldToUpdate =(Component)stream.readObject();
         initialize();
     }

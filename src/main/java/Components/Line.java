@@ -8,6 +8,7 @@ public class Line implements Serializable{
     @Serial
     private static final long serialVersionUID = 5799091444127658990L;
     private int id1 = 0, id2 = 0, pin1 = 0, pin2 = 0;
+    private boolean alreadyGiven = false;
 
     public Line(int id1, int pin1, int id2, int pin2) {
         this.id1 = id1;
@@ -44,10 +45,14 @@ public class Line implements Serializable{
     }
 
     public boolean contain(int id,int pin) {
-        if (this.id1 == id && pin1 == pin) {
+        if (!alreadyGiven && this.id1 == id && pin1 == pin) {
+            alreadyGiven = true;
             return true;
+        }else if (!alreadyGiven){
+            alreadyGiven = true;
+            return  this.id2 == id && this.pin2 == pin;
         }
-        return this.id2 == id && this.pin2 == pin;
+        return false;
     }
 
     /**
@@ -59,5 +64,8 @@ public class Line implements Serializable{
             return pin2;
         }
         return pin1;
+    }
+    public void setAlreadyGivenToFalse(){
+        alreadyGiven = false;
     }
 }

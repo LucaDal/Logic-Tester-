@@ -1,13 +1,13 @@
 package Components;
 
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.HashMap;
 
 public class BitDisplay extends AbstractComponent {
 
@@ -45,10 +45,6 @@ public class BitDisplay extends AbstractComponent {
 
     }
 
-    @Override
-    public void resetAskedPin() {
-
-    }
 
     @Override
     public Boolean isGrounded() {
@@ -63,9 +59,11 @@ public class BitDisplay extends AbstractComponent {
         this.isGrounded = state;
     }
 
+    //pin is unused
     @Override
-    public void setConnection(Component anotherComponent, int pin, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), anotherComponent.returnObjName());
+    public void setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
+        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+    //TODO implementarlo per i due pin
     }
 
     @Override
@@ -81,8 +79,8 @@ public class BitDisplay extends AbstractComponent {
 
     @Override
     public void removeConnection() {
-        for (Component c : connectedComponent.values()) {
-            c.resetPinIfContain(this);
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            cp.getComponent().resetPinIfContain(this);
         }
     }
 
@@ -98,10 +96,7 @@ public class BitDisplay extends AbstractComponent {
     }
 
 
-    @Override
-    public int getPinFromAnotherObj(Component ObgID) {
-        return 1;
-    }
+
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeBoolean(state);
@@ -124,6 +119,6 @@ public class BitDisplay extends AbstractComponent {
         this.y = stream.readInt();
         this.ID = stream.readInt();
         this.parent = (JPanel) stream.readObject();
-        this.connectedComponent = (Multimap<Integer, Component>) stream.readObject();
+        this.connectedComponent = (Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
     }
 }

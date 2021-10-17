@@ -115,7 +115,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
         if (transistorToSet) {
             System.out.println("adding a transistor n: " + IDComponent);
-            componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30,lines));
+            componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30));
             IDComponent++;
         }
         if (vccToSet) {
@@ -332,8 +332,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         Components.Component secondComponent = componentMap.get(secondIDComponentPin.x).returnObjName();
         try {
             /* Aggiorno prima il transistor */
-            firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
-            secondComponent.setConnection(firstComponent, secondIDComponentPin.y, firstComponent.getState(firstIDComponentPin.y));
+            firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
+            secondComponent.setConnection(firstComponent, secondIDComponentPin.y,firstIDComponentPin.y , firstComponent.getState(firstIDComponentPin.y));
             firstComponent.updateAfterConnection();
             secondComponent.updateAfterConnection();
 

@@ -11,10 +11,11 @@ import java.io.Serializable;
 public abstract class AbstractComponent implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = -6138200399111000970L;
-    protected int x,y,ID,sizeWidth,sizeHeight;
+    protected int x,y,ID,sizeWidth,sizeHeight,pinOfTheClass = 1;
     protected boolean state = false,isGrounded;
     protected Component toldToUpdate;
-    protected Multimap<Integer, Component> connectedComponent = ArrayListMultimap.create();
+    protected Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
+
     JPanel parent;
 
     public AbstractComponent(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
@@ -26,21 +27,17 @@ public abstract class AbstractComponent implements Component, Serializable {
         this.sizeHeight = sizeHeight;
     }
 
+    abstract public void paintComponent(Graphics g);
+
     public void update() {
-        Component temp = null;
-        for (Component c : connectedComponent.values()) {
-            if (temp != c) {
-                c.resetAskedPin();
-                temp = c;
-            }
-            int pinToUpdate = c.getPinFromAnotherObj(this);
-            if (c != toldToUpdate) {
-                c.tellToUpdate(this);
-                c.setState(pinToUpdate, this.state);
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {//TODO aggiungere il tutto a quando inserirsco un nuovo pin
+            Component temp = cp.getComponent();
+            if (temp != toldToUpdate) {
+                temp.tellToUpdate(this);
+                temp.setState(cp.getPin(), this.state);
             }
         }
     }
-
     @Override
     public Point getPosition() {
         return new Point(this.x,this.y);
