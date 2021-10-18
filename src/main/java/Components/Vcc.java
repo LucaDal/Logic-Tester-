@@ -93,19 +93,20 @@ public class Vcc implements Component, Serializable {
     @Override
     public void setGrounded(boolean state, int pin) {
         this.isGrounded = state;
-        if (state) {
-            this.state = false;
-        } else {
-            this.state = true;
-        }
+        this.state = !state;
+        update();
     }
 
     @Override
-    public void setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
-        if (anotherComponent.isGrounded() && (otherPin != 2)) {
-            setGrounded(true, 0);
+    public boolean setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
+        if (!anotherComponent.getType().equalsIgnoreCase("gnd")){
+            connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+            if (anotherComponent.isGrounded() && (otherPin != 2)) {
+                setGrounded(true, 0);
+            }
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -143,11 +144,7 @@ public class Vcc implements Component, Serializable {
                 flag = true;
             }
         }
-        if (!flag) {
-            setGrounded(false, 0);
-        } else {
-            setGrounded(true, 0);
-        }
+        this.isGrounded = flag;
     }
 
     @Override

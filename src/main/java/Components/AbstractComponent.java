@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -14,7 +15,6 @@ public abstract class AbstractComponent implements Component, Serializable {
     protected int x,y,ID,sizeWidth,sizeHeight,pinOfTheClass = 1;
     protected boolean state = false,isGrounded;
     protected Component toldToUpdate;
-    protected Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
 
     JPanel parent;
 
@@ -28,16 +28,8 @@ public abstract class AbstractComponent implements Component, Serializable {
     }
 
     abstract public void paintComponent(Graphics g);
+    abstract public void update();
 
-    public void update() {
-        for (ComponentAndRelativePin cp : connectedComponent.values()) {//TODO aggiungere il tutto a quando inserirsco un nuovo pin
-            Component temp = cp.getComponent();
-            if (temp != toldToUpdate) {
-                temp.tellToUpdate(this);
-                temp.setState(cp.getPin(), this.state);
-            }
-        }
-    }
     @Override
     public Point getPosition() {
         return new Point(this.x,this.y);
@@ -91,4 +83,6 @@ public abstract class AbstractComponent implements Component, Serializable {
     public void tellToUpdate(Component fromThisComponent) {
     }
 
+    abstract void writeObject(java.io.ObjectOutputStream stream) throws IOException;
+    abstract void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException;
 }

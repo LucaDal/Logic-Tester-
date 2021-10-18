@@ -30,8 +30,9 @@ public interface Component {
      * @param pin of this transistor to set to
      * @param otherPin - pin of the other component that i'm setting to
      * @param state state of the component which connect to
+     * @return
      */
-    void setConnection(Component anotherComponent,int pin,int otherPin,boolean state);
+    boolean setConnection(Component anotherComponent,int pin,int otherPin,boolean state);
 
     void removeConnection();
 

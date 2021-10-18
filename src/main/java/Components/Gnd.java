@@ -93,15 +93,22 @@ public class Gnd implements Component, Serializable {
 
     /**
      * then set the other component to ground because this class is gnd so..
-     *  @param anotherComponent to connect with
+     * @param anotherComponent to connect with
      * @param pin              of this transistor to set to
-     * @param otherPin
+     * @param otherPin          pin of the other component that has bin connected to this one
      * @param state            state of the component which connect to
+     * @return
      */
     @Override
-    public void setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
-        anotherComponent.setGrounded(true, otherPin);
+    public boolean setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
+        if (anotherComponent.getType().equalsIgnoreCase("vcc") || anotherComponent.getType().equalsIgnoreCase("switch")){
+            JOptionPane.showMessageDialog(parent,"cannot connect to GND component","Impossible connection",JOptionPane.WARNING_MESSAGE);
+            return false;
+        }else{
+            connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+            anotherComponent.setGrounded(true, otherPin);
+        }
+        return true;
     }
 
 
@@ -110,8 +117,8 @@ public class Gnd implements Component, Serializable {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
             temp.tellToUpdate(this);
-            temp.setGrounded(false, cp.getPin());
             temp.resetPinIfContain(this);
+            temp.setGrounded(false, cp.getPin());
             temp.tellToUpdate(null);
         }
     }
@@ -150,8 +157,7 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public String getType() {
-        String type = "gnd";
-        return type;
+        return "gnd";
     }
 
     public void paintComponent(Graphics g) {

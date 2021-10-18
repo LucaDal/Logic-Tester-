@@ -9,7 +9,7 @@ import java.awt.event.KeyEvent;
 public class DisplayFrame extends JFrame {
     Interface inter = new Interface();
     Buttons buttonsInterfaces = new Buttons(inter);
-    Menu menuInterfaces = new Menu(inter);
+    Menu menuInterfaces = new Menu(inter,inter);
 
     public DisplayFrame() {
         super("Logic Tester");

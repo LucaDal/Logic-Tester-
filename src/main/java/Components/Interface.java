@@ -13,15 +13,15 @@ import java.util.Iterator;
 import java.util.Map;
 
 
-public class Interface extends JPanel implements MouseListener, MouseMotionListener,MouseWheelListener {
+public class Interface extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
     private HashMap<Integer, Component> componentMap = new HashMap<>();
     private HashMap<Line, ArrayList<Integer>> lines = new HashMap<>();
     private ArrayList<Line> tempLines = new ArrayList<>();
-    private  double zoomFactor =1, prevZoomFactor=1,xOffset,yOffset;
+    private double zoomFactor = 1, prevZoomFactor = 1, xOffset, yOffset;
     private int IDComponent = 1, IdReturnedTemp, IdComponentMoved, startDraggingX, startDraggingY;
     //dont use pin = 1 - 4 - 5 -> are used into returnPosition
     boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false, debugIsSelected = false,
-            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false,zoom = false,
+            switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false, zoom = false,
             linesAlreadyEliminated = false, bitDisplayIsSelected = false;
     private Point tempConnectionPointFirstCall = new Point();
 
@@ -143,7 +143,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
                 componentMap.get(IdReturned).removeConnection();
                 componentMap.remove(IdReturned);
-                if (componentMap.size() == 0){
+                if (componentMap.size() == 0) {
                     IDComponent = 1;
                 }
             }
@@ -154,10 +154,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             if (IdReturned != 0) {
                 Components.Component componentReturned = componentMap.get(IdReturned);
                 if (componentReturned.getType().equalsIgnoreCase("switch") && componentReturned.inputTarget(e.getX(), e.getY()).y == 0) {
-                    try{
+                    try {
 
                         componentReturned.setState(1, !componentReturned.getState(0));
-                    }catch(StackOverflowError error){
+                    } catch (StackOverflowError error) {
                         error.printStackTrace();
                         System.out.println("overflow dopo click dello switch");
                     }
@@ -169,7 +169,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                     }
                 } else {
                     if (IdReturnedTemp != IdReturned) {
-                        Point tempConnectionPointSecondCall = new Point();
+                        Point tempConnectionPointSecondCall;
                         if ((tempConnectionPointSecondCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
                             System.out.println("and component ID: " + tempConnectionPointSecondCall.x + ", pin: " + tempConnectionPointSecondCall.y);
                             connect(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
@@ -189,8 +189,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                 System.out.println(componentMap.get(IdReturned).toString());
             }
         }
-        if(bitDisplayIsSelected) {
-            componentMap.put(IDComponent, new BitDisplay(this, IDComponent, e.getX(), e.getY(), 22, 28+8));//8 is the other oval for the gnd
+        if (bitDisplayIsSelected) {
+            componentMap.put(IDComponent, new BitDisplay(this, IDComponent, e.getX(), e.getY(), 22, 28 + 8));//8 is the other oval for the gnd
             IDComponent++;
         }
 
@@ -269,13 +269,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     }
 
     /**
-     * TODO cambiare descrizione
-     * does connect two component checking the type
-     * <p>
-     * for not reaping code i've used:
-     * pin 1 if Vcc
-     * pin 4 if switch
-     * pin (every number exept pin numbers) if gnd
+     * does connect two component checking the type returning the psition of thw start or the
+     * end of the line to create (the one which is calling this function)
      *
      * @param pin pin 1 if Vcc; pin 4 if switch; pin (every number exeption for 1-PinA-Transistor.pinB-4-5-6-Transistor.pinC) if gnd
      * @param c   component to get info about
@@ -286,34 +281,27 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             position.x = c.getPosition().x + c.getSizeWidth() - 5;
             position.y = c.getPosition().y + c.getSizeHeight() - 25;
             return position;
-        } else
-        if (pin == Transistor.pinB) {
+        } else if (pin == Transistor.pinB) {
             position.x = c.getPosition().x + c.getSizeWidth() - 25;
             position.y = c.getPosition().y + c.getSizeHeight() - 15;
-        }else
-        if (pin == Transistor.pinC) {
+        } else if (pin == Transistor.pinC) {
             position.x = c.getPosition().x + c.getSizeWidth() - 5;
             position.y = c.getPosition().y + c.getSizeHeight() - 5;
-        }else
-        if (pin == 1) {//switch
+        } else if (pin == 1) {//switch
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
             position.y = c.getPosition().y + c.getSizeHeight() - 4;
-        }else
-        if (pin == 4) {//vcc
+        } else if (pin == 4) {//vcc
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
             position.y = c.getPosition().y + c.getSizeHeight() / 2;
-        }else
-        if (pin == 5) {//gnd
+        } else if (pin == 5) {//gnd
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
             position.y = c.getPosition().y + 3;
-        }else
-        if (pin == BitDisplay.pinHigh){
+        } else if (pin == BitDisplay.pinHigh) {//bitDisplay
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
             position.y = c.getPosition().y + 4;
-        }else
-        if (pin == BitDisplay.pinLow){
+        } else if (pin == BitDisplay.pinLow) {
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
-            position.y = c.getPosition().y + c.getSizeHeight()-4;
+            position.y = c.getPosition().y + c.getSizeHeight() - 4;
         }
         return position;
     }
@@ -332,12 +320,19 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         Components.Component secondComponent = componentMap.get(secondIDComponentPin.x).returnObjName();
         try {
             /* Aggiorno prima il transistor */
+            boolean flagGoodConnections = false;
             firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
-            secondComponent.setConnection(firstComponent, secondIDComponentPin.y,firstIDComponentPin.y , firstComponent.getState(firstIDComponentPin.y));
-            firstComponent.updateAfterConnection();
-            secondComponent.updateAfterConnection();
+            flagGoodConnections = secondComponent.setConnection(firstComponent, secondIDComponentPin.y, firstIDComponentPin.y, firstComponent.getState(firstIDComponentPin.y));
+            if (flagGoodConnections){
+                firstComponent.updateAfterConnection();
+                secondComponent.updateAfterConnection();
+            }else{
+                deleteLine(firstIDComponentPin.x);
+            }
 
         } catch (StackOverflowError e) {
+            deleteLine(firstIDComponentPin.x);
+            JOptionPane.showMessageDialog(this,"Error connecting","infinite loop",JOptionPane.WARNING_MESSAGE);
             System.out.println("errore nella connessione; loop infinito impossibile collegare");
         }
 
@@ -360,7 +355,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                 c.update();
             }
         }
-        System.out.println(IDComponent + "IDCOmpponent");
         select();
         repaint();
     }
@@ -387,7 +381,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
      * if called this function will set the parameter transistorToSet to true
      * and then after clicking on the jPanel it will rapresent the image
      */
-    public void addTransistor() { //TODO change the way of implementing a system of transistor if more then one
+    public void addTransistor() {
         resetAll();
         transistorToSet = true;
     }
@@ -445,7 +439,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
      * @param e mouseEvent
      */
     @Override
-    public void mouseDragged(MouseEvent e) {//TODO moving Components
+    public void mouseDragged(MouseEvent e) {
         if (!mouseDragged) {
             mouseDragged = true;
             IdComponentMoved = checkMouseOverComponent(e);
@@ -502,7 +496,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         mouseDragged = false;
         if (linesAlreadyEliminated) {
-            for (Component c : componentMap.values()) {//TODO ottimizzare e collegare una sola volta gli elementi tra loro(cerca dall'hashMap lines)
+            for (Component c : componentMap.values()) {
                 callUpdateLineAfterDragged();
                 repaint();
             }
@@ -549,5 +543,12 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             zoomFactor /= 1.1;
             repaint();
         }
+    }
+
+    public void clearPanel() {
+        IDComponent = 1;
+        lines.clear();
+        componentMap.clear();
+        repaint();
     }
 }

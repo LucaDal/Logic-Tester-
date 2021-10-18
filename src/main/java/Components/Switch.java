@@ -8,8 +8,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Switch implements Component, Serializable {
     @Serial
@@ -98,8 +96,12 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
-    public void setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
-        connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+    public boolean setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
+        if (!anotherComponent.getType().equalsIgnoreCase("gnd")){
+            connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -161,6 +163,7 @@ public class Switch implements Component, Serializable {
             if (temp != toldToUpdate) {
                 temp.tellToUpdate(this);
                 temp.setState(cp.getPin(), this.state);
+                temp.tellToUpdate(null);
             }
         }
     }
@@ -184,7 +187,7 @@ public class Switch implements Component, Serializable {
         this.y =stream.readInt();
         this.ID =stream.readInt();
         this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
+        this.connectedComponent = (Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
     }
 
 }

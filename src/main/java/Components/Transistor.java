@@ -14,7 +14,7 @@ public class Transistor implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = -8082050773708616884L;
     private boolean A, B, C, updated, fromAtoC, BisUpdated, lastState,
-            AisUpdated, CisUpdated, isGrounded, AisGrounded, CisGrounded, groundUpdate;
+            AisUpdated, CisUpdated, isGrounded, AisGrounded, CisGrounded, groundUpdate,BisGrounded;
 
     static final int pinA = 3, pinB = 2, pinC = 9;
     private Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
@@ -37,7 +37,7 @@ public class Transistor implements Component, Serializable {
         this.sizeHeight = sizeHeight;
         initialize();
         A = B = C = updated = fromAtoC = BisUpdated = AisUpdated = CisUpdated
-                = AisGrounded = CisGrounded = groundUpdate = lastState = false;
+                = AisGrounded = CisGrounded = groundUpdate = lastState = BisGrounded = false;
     }
 
     private void initialize() {
@@ -109,7 +109,7 @@ public class Transistor implements Component, Serializable {
      * will check if there is any grounded component and then update if so,
      * will remove from the transistorConnectedToPinA/C the component
      *
-     * @param multiMap           to check and delate the component
+     * @param multiMap          to check and delate the component
      * @param toCompare         the component that you want to eliminate
      * @param arrayOfComponents array of components to check -> fromComponentA/C
      */
@@ -216,13 +216,13 @@ public class Transistor implements Component, Serializable {
     /**
      * sett connection between this component and the component c
      * and if the current comes from the other component (state == true )-> set fromComponentToA/C = ture
-     *
-     * @param c        the transistor id to set connection with
+     *  @param c        the transistor id to set connection with
      * @param pin      pin of this transistor to connect
      * @param otherPin pin of the other component connected to the pin of this transistor
      * @param state    of the pin of the component which connect to
+     * @return
      */
-    public void setConnection(Component c, int pin, int otherPin, boolean state) {
+    public boolean setConnection(Component c, int pin, int otherPin, boolean state) {
         lastState = state;
         toConnect = c;
         if (pin == pinB) {
@@ -236,12 +236,8 @@ public class Transistor implements Component, Serializable {
         if (pin == pinC) {
             transistorConnectedToPinC.put(c.getIDComponent(), new ComponentAndRelativePin(c, otherPin));
             newConnectionOnPin = pinC;
-            if (state) {
-                fromComponentToC.add(c);
-                setState(pinC, true);
-            }
         }
-        //System.out.println("Connection setted between: " + this + ", and: " + c);
+        return true;
     }
 
     @Override
@@ -254,9 +250,7 @@ public class Transistor implements Component, Serializable {
             }
         }
         if (newConnectionOnPin == pinB) {
-            tellToUpdate(this);
             setState(pinB, lastState);
-
         }
         if (newConnectionOnPin == pinC) {
             if (lastState) {
@@ -290,44 +284,68 @@ public class Transistor implements Component, Serializable {
     public void setGrounded(boolean state, int pin) {
 
         if (pinA == pin) {
+            if (B && AisGrounded && !state) {//parte simile per il pinB attenzione nel debug -Prof non ci faccia caso pls <3
+                if (!CisGrounded) {
+                    isGrounded = false;
+                    AisGrounded = false;
+                }
+                if (checkIfGrounded(transistorConnectedToPinC)) {
+                    updateHashMapToGroundOrNot(transistorConnectedToPinC,true);
+                }
+            }
             AisGrounded = state;
             if (AisGrounded) {
+                updateHashMapToGroundOrNot(transistorConnectedToPinA,true);
                 setState(pinA, false);
-                updateHashMapToGround(transistorConnectedToPinA, pinA);
+                if (B){
+                    updateHashMapToGroundOrNot(transistorConnectedToPinC,true);
+                    setState(pinC,false);
+                }
                 return;
             }
             if (!checkIfGrounded(transistorConnectedToPinA)) {
-                for (ComponentAndRelativePin cp : transistorConnectedToPinA.values()) {
-                    cp.getComponent().setGrounded(false, 1);
-                }
+                updateHashMapToGroundOrNot(transistorConnectedToPinA,false);
 
             }
         }
+        if (pin == pinB){//TODO fix if B is Ground
+            BisGrounded = state;
+            updateHashMapToGroundOrNot(transistorConnectedToPinB, state);
 
+        }
+        //PARTE SPECULARE AD A
         if (pinC == pin) {
+            if (B && CisGrounded && !state) {
+                if (!AisGrounded) {
+                    isGrounded = false;
+                    CisGrounded = false;
+                }
+                if (checkIfGrounded(transistorConnectedToPinA)) {
+                    updateHashMapToGroundOrNot(transistorConnectedToPinA,true);
+                }
+            }
             CisGrounded = state;
             if (CisGrounded) {
+                updateHashMapToGroundOrNot(transistorConnectedToPinC,true);
                 setState(pinC, false);
-                updateHashMapToGround(transistorConnectedToPinC, pinC);
+                if (B){
+                    updateHashMapToGroundOrNot(transistorConnectedToPinA,true);
+                    setState(pinA,false);
+                }
                 return;
             }//controllo se oltre al gnd che rimuovo ce ne sono altri connessi in parallelo
             if (!checkIfGrounded(transistorConnectedToPinC)) {
-                for (ComponentAndRelativePin cp : transistorConnectedToPinC.values()) {
-                    cp.getComponent().setGrounded(false, 1);
-                }
+                updateHashMapToGroundOrNot(transistorConnectedToPinC,false);
+
             }
         }
-
-
-        if (!CisGrounded && !AisGrounded) {
+        if (!CisGrounded && !AisGrounded && !BisGrounded) {
             this.isGrounded = false;
         }
 
         tellToUpdateAfterGrounding(transistorConnectedToPinA, pinA);
         tellToUpdateAfterGrounding(transistorConnectedToPinC, pinC);
-        //System.out.println("AisGrounded: " + AisGrounded + ", CisGrounded " + CisGrounded);
     }
-
     /**
      * controllo se oltre al gnd che rimuovo ce ne sono altri connessi in parallelo
      *
@@ -350,18 +368,18 @@ public class Transistor implements Component, Serializable {
      * will update every object to ground
      *
      * @param multiMap of the component connected to the pin
-     * @param pin     of this component considered
+     * @param state   to set to other pin
      */
-    private void updateHashMapToGround(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
+    private void updateHashMapToGroundOrNot(Multimap<Integer, ComponentAndRelativePin> multiMap,boolean state) {
 
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
             if (temp != toldToUpdate) {
                 temp.tellToUpdate(this);
-                temp.setGrounded(true, cp.getPin());
+                temp.setGrounded(state, cp.getPin());
+                temp.tellToUpdate(null);
             }
         }
-
     }
 
     /**
@@ -375,7 +393,10 @@ public class Transistor implements Component, Serializable {
             Component temp = cp.getComponent();
             if (temp.getType().equalsIgnoreCase("transistor")) {
                 if (temp.isGrounded() && !isGrounded) {
+                    temp.tellToUpdate(this);
                     temp.setGrounded(false, cp.getPin());
+                    temp.tellToUpdate(null);
+
                 }
             } else {
                 if (temp != toldToUpdate) {
@@ -409,6 +430,7 @@ public class Transistor implements Component, Serializable {
             if (temp != toldToUpdate) {
                 temp.tellToUpdate(this);
                 temp.setState(cp.getPin(), pinState);
+                temp.tellToUpdate(null);
             }
         }
     }
@@ -464,14 +486,14 @@ public class Transistor implements Component, Serializable {
                 if (state) {//B = true
                     if (CisGrounded) {
                         isGrounded = true;
-                        setGroundCall(transistorConnectedToPinA);
+                        updateHashMapToGroundOrNot(transistorConnectedToPinA,true);
                         if (A) {
                             AisUpdated = true;
                             A = false;
                         }
                     } else if (AisGrounded) {
                         isGrounded = true;
-                        setGroundCall(transistorConnectedToPinC);
+                        updateHashMapToGroundOrNot(transistorConnectedToPinC,true);
                         if (C) {
                             CisUpdated = true;
                             C = false;
@@ -519,6 +541,13 @@ public class Transistor implements Component, Serializable {
                         CisUpdated = true;
                         C = true;
                     }
+                    if (AisGrounded && !CisGrounded){
+                        updateHashMapToGroundOrNot(transistorConnectedToPinC,false);
+                    }
+
+                    if (CisGrounded && !AisGrounded){
+                        updateHashMapToGroundOrNot(transistorConnectedToPinA,false);
+                    }
                 }
             }
         } else if (pin == pinC) { //pin C
@@ -560,14 +589,6 @@ public class Transistor implements Component, Serializable {
         update();
     }
 
-    void setGroundCall(Multimap<Integer, ComponentAndRelativePin> pinToUpdate) {
-
-        for (ComponentAndRelativePin cp : pinToUpdate.values()) {
-            Component temp = cp.getComponent();
-            temp.tellToUpdate(this);
-            temp.setGrounded(true, cp.getPin());
-        }
-    }
 
     @Override
     public void tellToUpdate(Component fromThisComponent) {
