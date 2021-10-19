@@ -123,13 +123,25 @@ public class BitDisplay extends AbstractComponent {
     }
 
     @Override
+    public void removeConnectionFromPins(int pin) {
+        if (pin == pinHigh){
+            removeConnectionFromHashMap(connectedComponentHigh);
+            setState(pin,false);
+        }else if (pin == pinLow){
+            removeConnectionFromHashMap(connectedComponentLow);
+        }
+    }
+
+    @Override
     public void removeConnection() {
-        for (ComponentAndRelativePin cp : connectedComponentHigh.values()) {
+        removeConnectionFromHashMap(connectedComponentHigh);
+        removeConnectionFromHashMap(connectedComponentLow);
+    }
+    private void removeConnectionFromHashMap(Multimap<Integer, ComponentAndRelativePin> multiMap){
+        for (ComponentAndRelativePin cp : multiMap.values()) {
             cp.getComponent().resetPinIfContain(this);
         }
-        for (ComponentAndRelativePin cp : connectedComponentLow.values()) {
-            cp.getComponent().resetPinIfContain(this);
-        }
+        multiMap.clear();
     }
 
     /**

@@ -1,8 +1,5 @@
 package Components;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -79,6 +76,8 @@ public abstract class AbstractComponent implements Component, Serializable {
     public void resetPinIfContain(Component ID) {
     }
 
+    @Override
+    public abstract void removeConnectionFromPins(int pin);
     @Override
     public void tellToUpdate(Component fromThisComponent) {
     }

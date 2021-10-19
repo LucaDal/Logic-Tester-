@@ -30,10 +30,10 @@ public interface Component {
      * @param pin of this transistor to set to
      * @param otherPin - pin of the other component that i'm setting to
      * @param state state of the component which connect to
-     * @return
+     * @return @return  true if the connection is possible, false otherwise
      */
     boolean setConnection(Component anotherComponent,int pin,int otherPin,boolean state);
-
+    void removeConnectionFromPins(int pin);
     void removeConnection();
 
     /**
@@ -43,8 +43,8 @@ public interface Component {
     Component returnObjName();
     /**
      * given a point it will tell in which place it has been clicked;
-     * @param x
-     * @param y
+     * @param x input of the mouse
+     * @param y input of the mouse
      * @return retrurn the X: ID of the component clicked and Y: the pin clicked - 0 is the invalid pin
      */
     Point inputTarget(int x,int y);

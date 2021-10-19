@@ -12,6 +12,7 @@ import java.io.Serializable;
 public class Switch implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = -7039775726878008122L;
+    static int pinToChangeState = 4;
     final String type = "switch";
     boolean state = false;
     int sizeWidth, sizeHeight, x, y, ID;
@@ -105,10 +106,16 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
+    public void removeConnectionFromPins(int pin) {
+        removeConnection();
+    }
+
+    @Override
     public void removeConnection() {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             cp.getComponent().resetPinIfContain(this);
         }
+        connectedComponent.clear();
     }
 
     @Override
@@ -144,11 +151,10 @@ public class Switch implements Component, Serializable {
      */
     @Override
     public void setState(int pin, boolean state) {
-        if (pin == 1) {
+        if (pin == pinToChangeState) {
             this.state = state;
         }
         update();
-        toldToUpdate = null;
     }
 
     @Override

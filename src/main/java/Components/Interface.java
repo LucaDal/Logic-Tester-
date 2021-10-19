@@ -110,6 +110,31 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
+    /**
+     *
+     * @param IDAndPin point containing on the X the ID of the component and the pin on the Y
+     */
+    private void deleteLine(Point IDAndPin) {
+        Iterator<Map.Entry<Line, ArrayList<Integer>>> iter = lines.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Line, ArrayList<Integer>> entry = iter.next();
+            Line key = entry.getKey();
+            if (key.contain(IDAndPin.x,IDAndPin.y)) {
+                iter.remove();
+            }
+        }
+    }
+    private void deleteLine(int id1,int id2) {
+        Iterator<Map.Entry<Line, ArrayList<Integer>>> iter = lines.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Line, ArrayList<Integer>> entry = iter.next();
+            Line key = entry.getKey();
+            if (key.containForID(id1,id2)) {
+                iter.remove();
+            }
+        }
+    }
+
     @Override
     public void mouseClicked(MouseEvent e) {
 
@@ -150,36 +175,47 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         if (selectIsSelected) {
             int IdReturned = checkMouseOverComponent(e);
-            //System.out.println("IDComponent tornato: " + IdReturned);
-            if (IdReturned != 0) {
-                Components.Component componentReturned = componentMap.get(IdReturned);
-                if (componentReturned.getType().equalsIgnoreCase("switch") && componentReturned.inputTarget(e.getX(), e.getY()).y == 0) {
-                    try {
-
-                        componentReturned.setState(1, !componentReturned.getState(0));
-                    } catch (StackOverflowError error) {
-                        error.printStackTrace();
-                        System.out.println("overflow dopo click dello switch");
+            if(e.getButton() == 2 ){
+                Component component = componentMap.get(IdReturned);
+                if (component != null){
+                    Point IDAndPin = component.inputTarget(e.getX(),e.getY());
+                    if (IDAndPin.y != 0){
+                        component.removeConnectionFromPins(IDAndPin.y);
+                        deleteLine(IDAndPin);
                     }
-                } else if (!setConnection) {
-                    IdReturnedTemp = IdReturned;
-                    if ((tempConnectionPointFirstCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
-                        setConnection = true;
-                        System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
-                    }
-                } else {
-                    if (IdReturnedTemp != IdReturned) {
-                        Point tempConnectionPointSecondCall;
-                        if ((tempConnectionPointSecondCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
-                            System.out.println("and component ID: " + tempConnectionPointSecondCall.x + ", pin: " + tempConnectionPointSecondCall.y);
-                            connect(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
-                        }
-                    }
-                    setConnection = false;
                 }
-            } else {//se il secondo click non è un componente
-                if (setConnection) {
-                    setConnection = false;
+            }else {
+
+                //System.out.println("IDComponent tornato: " + IdReturned);
+                if (IdReturned != 0) {
+                    Components.Component componentReturned = componentMap.get(IdReturned);
+                    if (componentReturned.getType().equalsIgnoreCase("switch") && componentReturned.inputTarget(e.getX(), e.getY()).y == 0) {
+                        try {
+                            componentReturned.setState(Switch.pinToChangeState, !componentReturned.getState(0));
+                        } catch (StackOverflowError error) {
+                            error.printStackTrace();
+                            System.out.println("overflow dopo click dello switch");
+                        }
+                    } else if (!setConnection) {
+                        IdReturnedTemp = IdReturned;
+                        if ((tempConnectionPointFirstCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
+                            setConnection = true;
+                            System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
+                        }
+                    } else {
+                        if (IdReturnedTemp != IdReturned) {
+                            Point tempConnectionPointSecondCall;
+                            if ((tempConnectionPointSecondCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
+                                System.out.println("and component ID: " + tempConnectionPointSecondCall.x + ", pin: " + tempConnectionPointSecondCall.y);
+                                connect(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
+                            }
+                        }
+                        setConnection = false;
+                    }
+                } else {//se il secondo click non è un componente
+                    if (setConnection) {
+                        setConnection = false;
+                    }
                 }
             }
         }
@@ -327,7 +363,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                 firstComponent.updateAfterConnection();
                 secondComponent.updateAfterConnection();
             }else{
-                deleteLine(firstIDComponentPin.x);
+                deleteLine(firstIDComponentPin.x,secondIDComponentPin.x);
             }
 
         } catch (StackOverflowError e) {

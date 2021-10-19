@@ -101,7 +101,7 @@ public class Vcc implements Component, Serializable {
     public boolean setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
         if (!anotherComponent.getType().equalsIgnoreCase("gnd")){
             connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
-            if (anotherComponent.isGrounded() && (otherPin != 2)) {
+            if (anotherComponent.isGrounded()) {
                 setGrounded(true, 0);
             }
             return true;
@@ -110,11 +110,22 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
+    public void removeConnectionFromPins(int pin) {
+        if (isGrounded){
+            JOptionPane.showMessageDialog(parent,"cannot disconnect while is grounded","Impossible disconnection",JOptionPane.WARNING_MESSAGE);
+        }else{
+            removeConnection();
+            connectedComponent.clear();
+        }
+    }
+
+    @Override
     public void removeConnection() {
         imBeenDeleted = true;
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             cp.getComponent().resetPinIfContain(this);
         }
+        connectedComponent.clear();
     }
 
     @Override
@@ -140,8 +151,10 @@ public class Vcc implements Component, Serializable {
         boolean flag = false;
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
-            if (temp.isGrounded() && cp.getPin() != 2) {
-                flag = true;
+            if (toldToUpdate != temp){
+                if (temp.isGrounded()) {
+                    flag = true;
+                }
             }
         }
         this.isGrounded = flag;
@@ -187,6 +200,7 @@ public class Vcc implements Component, Serializable {
         g.drawImage(img, x, y, parent);
     }
 
+    @Serial
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeBoolean(state);
         stream.writeBoolean(isGrounded);
@@ -200,6 +214,7 @@ public class Vcc implements Component, Serializable {
         stream.writeObject(toldToUpdate);
     }
 
+    @Serial
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
 
         this.state =stream.readBoolean();

@@ -24,9 +24,8 @@ public class WriteObjects {
      * Saves componentMap HashMap and Lines HashMap
      *
      * to get Lines Hashmap call readLines();
-     * @return componentMap
      */
-    public boolean saveObjects(HashMap<Integer, Component> componentMap,HashMap<Line, ArrayList<Integer>> lines) {
+    public void saveObjects(HashMap<Integer, Component> componentMap, HashMap<Line, ArrayList<Integer>> lines) {
         JFileChooser save = new JFileChooser();
         save.setDialogTitle("Saving Project");
         save.setSelectedFile(new File(".bin"));
@@ -46,8 +45,6 @@ public class WriteObjects {
                 JOptionPane.showMessageDialog(parent,"Error saving file.");
                 e.printStackTrace();
             }
-            return true;
         }
-        return false;
     }
 }

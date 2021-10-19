@@ -43,11 +43,12 @@ public class ReadObjects {
             try (FileInputStream stream = new FileInputStream(open.getSelectedFile())) {
 
                 ObjectInputStream ois = new ObjectInputStream(stream);
-                components = (HashMap) ois.readObject();
-                lines = (HashMap) ois.readObject();
+                components = (HashMap<Integer, Component>) ois.readObject();
+                lines = (HashMap<Line, ArrayList<Integer>>) ois.readObject();
                 ois.close();
 
             } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(parent,"Error loading file.");
             }
         }

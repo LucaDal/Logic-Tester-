@@ -73,7 +73,6 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public void resetPinIfContain(Component ID) {
-
     }
 
     @Override
@@ -111,6 +110,11 @@ public class Gnd implements Component, Serializable {
         return true;
     }
 
+    @Override
+    public void removeConnectionFromPins(int pin) {
+        removeConnection();
+    }
+
 
     @Override
     public void removeConnection() {
@@ -121,6 +125,7 @@ public class Gnd implements Component, Serializable {
             temp.setGrounded(false, cp.getPin());
             temp.tellToUpdate(null);
         }
+        connectedComponent.clear();
     }
 
     @Override
