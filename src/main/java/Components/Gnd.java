@@ -67,6 +67,16 @@ public class Gnd implements Component, Serializable {
     }
 
     @Override
+    public int getGroundedPin(int pin) {
+        return 1;
+    }
+
+    @Override
+    public boolean getPinState(int pin) {
+        return false;
+    }
+
+    @Override
     public void updateAfterConnection() {
 
     }

@@ -67,6 +67,16 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
+    public int getGroundedPin(int pin) {
+        return 0;
+    }
+
+    @Override
+    public boolean getPinState(int pin) {
+        return state;
+    }
+
+    @Override
     public void updateAfterConnection() {
 
     }
@@ -154,6 +164,7 @@ public class Vcc implements Component, Serializable {
             if (toldToUpdate != temp){
                 if (temp.isGrounded()) {
                     flag = true;
+                    break;
                 }
             }
         }

@@ -9,7 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Menu extends JMenuBar implements ActionListener {
-    private Components.Interface Interface;
+    private final Components.Interface Interface;
     private JPanel parent;
     public Menu(Interface inter,JPanel parent){
         setBackground(Color.white);
@@ -39,9 +39,8 @@ public class Menu extends JMenuBar implements ActionListener {
             case "Save Project"-> Interface.saveObjects();
             case "Open Project"-> Interface.readObject();
             case "Clear Panel" -> {
-                JOptionPane jo = new JOptionPane();
                 Object [] options = {"Save and delete","Delete","Cancel"};
-                int returnedValue = jo.showOptionDialog(parent,"Everything not saved will be lost!","Attention",JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.WARNING_MESSAGE,null,options,options[1]);
+                int returnedValue = JOptionPane.showOptionDialog(parent,"Everything not saved will be lost!","Attention",JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.WARNING_MESSAGE,null,options,options[1]);
                 if (returnedValue == 1){
                     Interface.clearPanel();
                 }

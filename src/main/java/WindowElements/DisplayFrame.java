@@ -44,15 +44,18 @@ public class DisplayFrame extends JFrame {
                 inter.select();
             }
             if (e.getKeyCode() == KeyEvent.VK_2) {
-                inter.addTransistor();
+                inter.addTransistorNpn();
             }
             if (e.getKeyCode() == KeyEvent.VK_3) {
-                inter.addVcc();
+                inter.addTransistorPnp();
             }
             if (e.getKeyCode() == KeyEvent.VK_4) {
-                inter.addGnd();
+                inter.addVcc();
             }
             if (e.getKeyCode() == KeyEvent.VK_5) {
+                inter.addGnd();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_6) {
                 inter.delete();
             }
             return false;

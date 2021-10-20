@@ -41,12 +41,17 @@ public class Switch implements Component, Serializable {
         g.fillRect(x+3, y+3, sizeWidth-6, sizeHeight-7-6);
         if (state) {
             g.setColor(Color.RED);
-            g.drawString("1", x + sizeWidth/2 - 3, y + sizeHeight / 2 + 1);
+            g.fillRect(x +  sizeWidth/2 - 2, y + sizeHeight / 2 -4,4,5);
             g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);
+            g.setColor(Color.BLACK);
+            g.fillRect(x +  sizeWidth/2 - 2, y + sizeHeight / 2 -9,4,5);
         } else {
             g.setColor(Color.BLACK);
             g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);
-            g.drawString("0", x +  sizeWidth/2 - 3, y + sizeHeight / 2 + 1);
+            g.fillRect(x +  sizeWidth/2 - 2, y + sizeHeight / 2 -4,4,5);
+            g.setColor(Color.RED);
+            g.fillRect(x +  sizeWidth/2 - 2, y + sizeHeight / 2 -9,4,5);
+
         }
     }
 
@@ -76,6 +81,15 @@ public class Switch implements Component, Serializable {
         this.y = position.y;
     }
 
+    @Override
+    public int getGroundedPin(int pin) {
+        return 0;
+    }
+
+    @Override
+    public boolean getPinState(int pin) {
+        return state;
+    }
 
 
     @Override
@@ -174,6 +188,7 @@ public class Switch implements Component, Serializable {
         }
     }
 
+    @Serial
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeBoolean(state);
         stream.writeInt(sizeWidth);
@@ -185,6 +200,7 @@ public class Switch implements Component, Serializable {
         stream.writeObject(connectedComponent);
     }
 
+    @Serial
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         this.state =stream.readBoolean();
         this.sizeWidth =stream.readInt();

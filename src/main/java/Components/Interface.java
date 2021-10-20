@@ -20,9 +20,9 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     private double zoomFactor = 1, prevZoomFactor = 1, xOffset, yOffset;
     private int IDComponent = 1, IdReturnedTemp, IdComponentMoved, startDraggingX, startDraggingY;
     //dont use pin = 1 - 4 - 5 -> are used into returnPosition
-    boolean transistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false, debugIsSelected = false,
+    boolean npnTransistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false, debugIsSelected = false,
             switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false, zoom = false,
-            linesAlreadyEliminated = false, bitDisplayIsSelected = false;
+            linesAlreadyEliminated = false, bitDisplayIsSelected = false,pnpTransistorToSet = false;
     private Point tempConnectionPointFirstCall = new Point();
 
 //  store the first clicked component id and the second one
@@ -138,7 +138,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void mouseClicked(MouseEvent e) {
 
-        if (transistorToSet) {
+        if (npnTransistorToSet) {
             System.out.println("adding a transistor n: " + IDComponent);
             componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30));
             IDComponent++;
@@ -417,9 +417,14 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
      * if called this function will set the parameter transistorToSet to true
      * and then after clicking on the jPanel it will rapresent the image
      */
-    public void addTransistor() {
+    public void addTransistorNpn() {
         resetAll();
-        transistorToSet = true;
+        npnTransistorToSet = true;
+    }
+
+    public void addTransistorPnp() {
+        resetAll();
+        pnpTransistorToSet = true;
     }
 
     public void addVcc() {
@@ -453,12 +458,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     public void resetAll() {
         gndToSet = false;
         vccToSet = false;
-        transistorToSet = false;
         deleteIsSelected = false;
         selectIsSelected = false;
         switchIsSelected = false;
         debugIsSelected = false;
         bitDisplayIsSelected = false;
+        npnTransistorToSet = false;
+        pnpTransistorToSet = false;
     }
 
 

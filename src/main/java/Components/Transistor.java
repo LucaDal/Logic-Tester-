@@ -88,6 +88,29 @@ public class Transistor implements Component, Serializable {
         this.y = position.y;
     }
 
+    @Override
+    public int getGroundedPin(int pin) {
+        if (AisGrounded) {
+            return pinA;
+        } else if (BisGrounded) {
+            return pinB;
+        } else if (CisGrounded) {
+            return pinC;
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean getPinState(int pin) {
+        if (pin == pinA) {
+            return A;
+        }
+        if (pin == pinB) {
+            return B;
+        }
+        return C;
+    }
+
     /**
      * tell if the id given is connected to this transistor, if does it disconnect
      * and reset the pin following setConection's rules
@@ -125,12 +148,9 @@ public class Transistor implements Component, Serializable {
             if (arrayOfComponents != null && pin != pinB) {
                 arrayOfComponents.remove(toCompare);
             }
-            if (temp != toCompare && temp.getType().equalsIgnoreCase("gnd")) {
+            if (temp != toCompare && temp.getType().equals("gnd")) {
                 grounded = true;
             }
-        }
-        if (arrayOfComponents != null && pin != pinB && arrayOfComponents.size() == 0) {
-            setState(pin, false);
         }
 
         if (!grounded) {
@@ -143,6 +163,22 @@ public class Transistor implements Component, Serializable {
             }
 
         }
+        if (arrayOfComponents != null && pin != pinB && arrayOfComponents.size() == 0) {
+            if(!checkIfConnectedPinAreOn(multiMap)){
+                setState(pin, false);
+            }
+        }
+    }
+
+    private boolean checkIfConnectedPinAreOn(Multimap<Integer, ComponentAndRelativePin> multiMap) {
+        boolean flagState = false;
+        for (ComponentAndRelativePin cp : multiMap.values()) {
+             if(cp.getComponent().getPinState(cp.getPin())){
+                 flagState = true;
+                 break;
+             }
+        }
+        return flagState;
     }
 
     /**
@@ -230,15 +266,27 @@ public class Transistor implements Component, Serializable {
     public boolean setConnection(Component c, int pin, int otherPin, boolean state) {
         lastState = state;
         toConnect = c;
+        int pinGrounded;
+        if ((pinGrounded = c.getGroundedPin(otherPin)) != 0) {
+            setGrounded(true, pinGrounded);
+        }
+
         if (pin == pinB) {
+            if (B) {
+                lastState = true;
+            }
             transistorConnectedToPinB.put(c.getIDComponent(), new ComponentAndRelativePin(c, otherPin));
             newConnectionOnPin = pinB;
-        }
-        if (pin == pinA) {
+        } else if (pin == pinA) {
+            if (A) {
+                lastState = true;
+            }
             transistorConnectedToPinA.put(c.getIDComponent(), new ComponentAndRelativePin(c, otherPin));
             newConnectionOnPin = pinA;
-        }
-        if (pin == pinC) {
+        } else if (pin == pinC) {
+            if (C) {
+                lastState = true;
+            }
             transistorConnectedToPinC.put(c.getIDComponent(), new ComponentAndRelativePin(c, otherPin));
             newConnectionOnPin = pinC;
         }
@@ -248,32 +296,31 @@ public class Transistor implements Component, Serializable {
     @Override
     public void removeConnectionFromPins(int pin) {
         if (pin == pinA) {
-            if (AisGrounded){
-                setGrounded(false,pinA);
+            if (AisGrounded) {
+                setGrounded(false, pinA);
             }
             removeComponentFromHashMap(transistorConnectedToPinA);
             if (fromAtoC) {
                 setState(pinA, false);
-            }else if(!C){
+            } else if (!C) {
                 setState(pinA, false);
             }
         }
         if (pin == pinB) {
-            if (BisGrounded){
-                setGrounded(false,pinB);
-
+            if (BisGrounded) {
+                setGrounded(false, pinB);
             }
             removeComponentFromHashMap(transistorConnectedToPinB);
             setState(pinB, false);//TODO fix for pnp transistor
         }
         if (pin == pinC) {
-            if (CisGrounded){
-                 setGrounded(false,pinC);
+            if (CisGrounded) {
+                setGrounded(false, pinC);
             }
             removeComponentFromHashMap(transistorConnectedToPinC);
             if (!fromAtoC) {
                 setState(pinC, false);
-            }else if(!A){
+            } else if (!A) {
                 setState(pinC, false);
             }
         }
@@ -282,7 +329,7 @@ public class Transistor implements Component, Serializable {
     @Override
     public void updateAfterConnection() {
         if (newConnectionOnPin == pinA) {
-            if (AisGrounded){
+            if (AisGrounded) {
                 lastState = false;
             }
             if (lastState) {
@@ -292,13 +339,13 @@ public class Transistor implements Component, Serializable {
             }
         }
         if (newConnectionOnPin == pinB) {
-            if (BisGrounded){
+            if (BisGrounded) {
                 lastState = false;
             }
             setState(pinB, lastState);
         }
         if (newConnectionOnPin == pinC) {
-            if (CisGrounded){
+            if (CisGrounded) {
                 lastState = false;
             }
             if (lastState) {
@@ -343,6 +390,7 @@ public class Transistor implements Component, Serializable {
             }
             AisGrounded = state;
             if (AisGrounded) {
+                this.isGrounded = true;
                 updateHashMapToGroundOrNot(transistorConnectedToPinA, true);
                 setState(pinA, false);
                 if (B) {
@@ -375,6 +423,7 @@ public class Transistor implements Component, Serializable {
             }
             CisGrounded = state;
             if (CisGrounded) {
+                this.isGrounded = true;
                 updateHashMapToGroundOrNot(transistorConnectedToPinC, true);
                 setState(pinC, false);
                 if (B) {
@@ -472,14 +521,13 @@ public class Transistor implements Component, Serializable {
     }
 
     /**
-     *
      * ho ibserito un if dove controllo se sa diverso da vcc
      * questo perche quando rimuovo le connessioni da un pin non voglio che mi vada a riaggiornare i pin a true
      */
     private void updateTransistor(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean pinState) {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
-            if (!temp.getType().equalsIgnoreCase("vcc")){
+            if (!temp.getType().equalsIgnoreCase("vcc")) {
                 if (temp != toldToUpdate) {
                     temp.tellToUpdate(this);
                     temp.setState(cp.getPin(), pinState);
@@ -517,6 +565,7 @@ public class Transistor implements Component, Serializable {
                     CisUpdated = true;
                 }
                 if (A && !B && !C) {
+                    //fromComponentToA.add();
                     fromAtoC = true;
                 }
                 if (A && B && !C) {

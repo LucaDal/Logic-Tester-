@@ -10,8 +10,11 @@ public interface Component {
     int getSizeHeight();
     int getIDComponent();
     void setPosition(Point position);
-
-
+    /**
+     * @return 0 id non of the pin are grounded - the pin instead
+     */
+    int getGroundedPin(int pin);
+    boolean getPinState(int pin);
     /**
      * called after two component will be connected
      */
