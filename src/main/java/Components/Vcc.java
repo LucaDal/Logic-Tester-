@@ -16,7 +16,7 @@ public class Vcc implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = 2344710408277521742L;
     final String type = "vcc";
-    boolean state = true, isGrounded = false, imBeenDeleted = false;
+    boolean state = true, isGrounded = false, imBeenDeleted = false,setGroundCall = false;
     Image img;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
@@ -67,8 +67,8 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
-    public int getGroundedPin(int pin) {
-        return 0;
+    public boolean getGroundedPin(int pin) {
+        return isGrounded;
     }
 
     @Override
@@ -104,6 +104,7 @@ public class Vcc implements Component, Serializable {
     public void setGrounded(boolean state, int pin) {
         this.isGrounded = state;
         this.state = !state;
+        setGroundCall = true;
         update();
     }
 
@@ -111,7 +112,7 @@ public class Vcc implements Component, Serializable {
     public boolean setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
         if (!anotherComponent.getType().equalsIgnoreCase("gnd")){
             connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
-            if (anotherComponent.isGrounded()) {
+            if (anotherComponent.getGroundedPin(otherPin)) {
                 setGrounded(true, 0);
             }
             return true;
@@ -140,7 +141,9 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public void update() {
-        checkIfConnectedToSomeGroundedComp();
+        if (!setGroundCall){
+            checkIfConnectedToSomeGroundedComp();
+        }
         if (!imBeenDeleted) {
             for (ComponentAndRelativePin cp : connectedComponent.values()) {
                 Component temp = cp.getComponent();
@@ -154,7 +157,7 @@ public class Vcc implements Component, Serializable {
                 }
             }
         }
-
+        setGroundCall = false;
     }
 
     void checkIfConnectedToSomeGroundedComp() {
@@ -162,13 +165,13 @@ public class Vcc implements Component, Serializable {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
             if (toldToUpdate != temp){
-                if (temp.isGrounded()) {
+                if (temp.getGroundedPin(cp.getPin())) {
                     flag = true;
                     break;
                 }
             }
         }
-        this.isGrounded = flag;
+        setGrounded(flag,1);
     }
 
     @Override
@@ -183,7 +186,7 @@ public class Vcc implements Component, Serializable {
     @Override
     public boolean getState(int pin) {
         checkIfConnectedToSomeGroundedComp();
-        return state; //opposite of ground
+        return state; //opposite of isGrounded
     }
 
     @Override

@@ -82,8 +82,8 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
-    public int getGroundedPin(int pin) {
-        return 0;
+    public boolean getGroundedPin(int pin) {
+        return false;
     }
 
     @Override
@@ -211,5 +211,4 @@ public class Switch implements Component, Serializable {
         this.parent =(JPanel)stream.readObject();
         this.connectedComponent = (Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
     }
-
 }

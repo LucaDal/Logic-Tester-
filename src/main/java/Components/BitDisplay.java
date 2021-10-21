@@ -16,7 +16,7 @@ public class BitDisplay extends AbstractComponent {
     private static final long serialVersionUID = 3312188755651290132L;
     protected Multimap<Integer, ComponentAndRelativePin> connectedComponentHigh = ArrayListMultimap.create();
     protected Multimap<Integer, ComponentAndRelativePin> connectedComponentLow = ArrayListMultimap.create();
-    boolean groundedPinHigh = false, groundedPinLow = false;
+    boolean groundedPinHigh = false, groundedPinLow = false,isGrounded = false;
 
     public BitDisplay(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         super(parent, ID, x, y, sizeWidth, sizeHeight);
@@ -53,6 +53,15 @@ public class BitDisplay extends AbstractComponent {
         updateComponent(connectedComponentLow);
 
     }
+
+    @Override
+    public boolean getGroundedPin(int pin) {
+        if(pinHigh == pin){
+            return groundedPinHigh;
+        }
+        return groundedPinLow;
+    }
+
     public void updateComponent(Multimap<Integer, ComponentAndRelativePin> multiMap){
         for (ComponentAndRelativePin cp : multiMap.values()) {//TODO aggiungere il tutto a quando inserirsco un nuovo pin
             Component temp = cp.getComponent();
@@ -65,7 +74,7 @@ public class BitDisplay extends AbstractComponent {
 
     @Override
     public Boolean isGrounded() {
-        return false;
+        return isGrounded;
     }
 
     @Override

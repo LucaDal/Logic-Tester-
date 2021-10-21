@@ -39,7 +39,7 @@ public class Menu extends JMenuBar implements ActionListener {
             case "Save Project"-> Interface.saveObjects();
             case "Open Project"-> Interface.readObject();
             case "Clear Panel" -> {
-                Object [] options = {"Save and delete","Delete","Cancel"};
+                Object [] options = {"Save and clear panel","Clear panel","Cancel"};
                 int returnedValue = JOptionPane.showOptionDialog(parent,"Everything not saved will be lost!","Attention",JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.WARNING_MESSAGE,null,options,options[1]);
                 if (returnedValue == 1){
                     Interface.clearPanel();

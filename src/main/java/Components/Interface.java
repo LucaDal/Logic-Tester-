@@ -234,8 +234,11 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     }
 
     /**
-     * used with returnPosition() just to avoid duplicate coide if i've to change line origin position to some component
-     * <p>
+     *
+     * given the two component it will get the position from the component and give the exact location where to positionate
+     * the line based on the component pin
+     *
+     * - STILL TO IMPROVE AND ELIMINATE THE DUPLICATE PART -
      * it is duplicate because this function will add the two coordinate into an array filled with 4 integer(1.x,1.y,2.x,2.y)
      * and then are insert into a class Line (which include the 4 coordinates), and putted into the HashMap (Lines)
      *
@@ -300,6 +303,11 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         //linesUpdated = true;
     }
 
+    /**
+     * used in ReleasedMouse()
+     * it get the element which has moved and pass it to updateLine
+     * @param line is the line that has to be changed
+     */
     private void updateLineAfterDragged(Line line) {
         updateLine(new Point(line.getId1(), line.getPin1()), new Point(line.getId2(), line.getPin2()));
     }
@@ -488,7 +496,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             startDraggingY = e.getY();
             startDraggingX = e.getX();
             Iterator<Map.Entry<Line, ArrayList<Integer>>> iter = lines.entrySet().iterator();
-            while (iter.hasNext()) {
+            while (iter.hasNext()) { //for single line or single component moving
                 Map.Entry<Line, ArrayList<Integer>> mapEntry = (Map.Entry<Line, ArrayList<Integer>>) iter.next();
                 Line key = mapEntry.getKey();
                 if (mapEntry.getKey().contain(IdComponentMoved)) {
@@ -500,7 +508,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         if (IdComponentMoved != 0 && IdComponentMoved < IDComponent) {
             Component c = componentMap.get(IdComponentMoved);
             c.setPosition(new Point(e.getX() - c.getSizeWidth() / 2, e.getY() - c.getSizeWidth() / 2));
-            repaint();
         } else {
             if (!linesAlreadyEliminated) {
                 tempLines.addAll(lines.keySet());
@@ -512,8 +519,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             startDraggingY = e.getY();
             startDraggingX = e.getX();
-            repaint();
         }
+        repaint();
     }
 
     @Override

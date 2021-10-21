@@ -5,6 +5,7 @@ import Components.Interface;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 public class DisplayFrame extends JFrame {
     Interface inter = new Interface();
@@ -12,9 +13,12 @@ public class DisplayFrame extends JFrame {
     Menu menuInterfaces = new Menu(inter,inter);
 
     public DisplayFrame() {
+
+
         super("Logic Tester");
         setLayout(new BorderLayout());
-
+        Image icon = Toolkit.getDefaultToolkit().getImage(System.getProperty("user.dir") + "\\src\\main\\resources\\npn.png");
+        setIconImage(icon);
         /*key bindigs*/
         KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         manager.addKeyEventDispatcher(new MyDispatcher());

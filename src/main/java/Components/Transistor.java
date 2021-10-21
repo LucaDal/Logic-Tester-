@@ -89,15 +89,14 @@ public class Transistor implements Component, Serializable {
     }
 
     @Override
-    public int getGroundedPin(int pin) {
-        if (AisGrounded) {
-            return pinA;
-        } else if (BisGrounded) {
-            return pinB;
-        } else if (CisGrounded) {
-            return pinC;
+    public boolean getGroundedPin(int pin) {
+        if (pin == pinA) {
+            return AisGrounded;
         }
-        return 0;
+        if (pin == pinB) {
+            return BisGrounded;
+        }
+        return CisGrounded;
     }
 
     @Override
@@ -266,9 +265,8 @@ public class Transistor implements Component, Serializable {
     public boolean setConnection(Component c, int pin, int otherPin, boolean state) {
         lastState = state;
         toConnect = c;
-        int pinGrounded;
-        if ((pinGrounded = c.getGroundedPin(otherPin)) != 0) {
-            setGrounded(true, pinGrounded);
+        if (c.getGroundedPin(otherPin)) {
+            setGrounded(true, pin);
         }
 
         if (pin == pinB) {
@@ -294,33 +292,33 @@ public class Transistor implements Component, Serializable {
     }
 
     @Override
-    public void removeConnectionFromPins(int pin) {
+    public void removeConnectionFromPins(int pin) {//TODO attenzione nell'implementazione del pnp
         if (pin == pinA) {
+            removeComponentFromHashMap(transistorConnectedToPinA);
             if (AisGrounded) {
                 setGrounded(false, pinA);
             }
-            removeComponentFromHashMap(transistorConnectedToPinA);
-            if (fromAtoC) {
+            if (fromAtoC && A) {
                 setState(pinA, false);
-            } else if (!C) {
+            } else if (C) {
                 setState(pinA, false);
             }
         }
         if (pin == pinB) {
-            if (BisGrounded) {
+            removeComponentFromHashMap(transistorConnectedToPinB);
+            if (BisGrounded && B) {
                 setGrounded(false, pinB);
             }
-            removeComponentFromHashMap(transistorConnectedToPinB);
             setState(pinB, false);//TODO fix for pnp transistor
         }
         if (pin == pinC) {
+            removeComponentFromHashMap(transistorConnectedToPinC);
             if (CisGrounded) {
                 setGrounded(false, pinC);
             }
-            removeComponentFromHashMap(transistorConnectedToPinC);
-            if (!fromAtoC) {
+            if (!fromAtoC && C) {
                 setState(pinC, false);
-            } else if (!A) {
+            } else if (A) {
                 setState(pinC, false);
             }
         }
@@ -359,7 +357,6 @@ public class Transistor implements Component, Serializable {
     @Override
     public Boolean isGrounded() {
         return isGrounded;
-
     }
 
     /**
@@ -392,11 +389,11 @@ public class Transistor implements Component, Serializable {
             if (AisGrounded) {
                 this.isGrounded = true;
                 updateHashMapToGroundOrNot(transistorConnectedToPinA, true);
-                setState(pinA, false);
                 if (B) {
                     updateHashMapToGroundOrNot(transistorConnectedToPinC, true);
                     setState(pinC, false);
                 }
+                setState(pinA, false);
                 return;
             }
             if (!checkIfGrounded(transistorConnectedToPinA)) {
@@ -415,7 +412,6 @@ public class Transistor implements Component, Serializable {
             if (B && CisGrounded && !state) {
                 if (!AisGrounded) {
                     isGrounded = false;
-                    CisGrounded = false;
                 }
                 if (checkIfGrounded(transistorConnectedToPinA)) {
                     updateHashMapToGroundOrNot(transistorConnectedToPinA, true);
@@ -425,16 +421,15 @@ public class Transistor implements Component, Serializable {
             if (CisGrounded) {
                 this.isGrounded = true;
                 updateHashMapToGroundOrNot(transistorConnectedToPinC, true);
-                setState(pinC, false);
                 if (B) {
                     updateHashMapToGroundOrNot(transistorConnectedToPinA, true);
                     setState(pinA, false);
                 }
+                setState(pinC, false);
                 return;
             }//controllo se oltre al gnd che rimuovo ce ne sono altri connessi in parallelo
             if (!checkIfGrounded(transistorConnectedToPinC)) {
                 updateHashMapToGroundOrNot(transistorConnectedToPinC, false);
-
             }
         }
         if (!CisGrounded && !AisGrounded && !BisGrounded) {
@@ -784,7 +779,7 @@ public class Transistor implements Component, Serializable {
     public String toString() {
         return "Transistor{" + "A=" + A + ", B=" + B + ", C=" + C + ", fromAtoC=" + fromAtoC +
                 ", isGrounded=" + isGrounded + ", AisGrounded=" + AisGrounded +
-                ", CisGrounded=" + CisGrounded + ", groundUpdate=" + groundUpdate + ", ID=" + ID +
+                ", CisGrounded=" + CisGrounded + ", BisGrounded=" + BisGrounded +  ", groundUpdate=" + groundUpdate + ", ID=" + ID +
                 ", toldToUpdate=" + toldToUpdate + '}';
     }
 }

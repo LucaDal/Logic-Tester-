@@ -59,9 +59,7 @@ public abstract class AbstractComponent implements Component, Serializable {
     }
 
     @Override
-    public int getGroundedPin(int pin) {
-        return 0;
-    }
+    public abstract boolean getGroundedPin(int pin);
 
     @Override
     public boolean getPinState(int pin) {
