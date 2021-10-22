@@ -67,7 +67,17 @@ public class Gnd implements Component, Serializable {
     }
 
     @Override
+    public boolean checkIfConnectedPinAreUnderVcc(int pin) {
+        return false;
+    }
+
+    @Override
     public boolean getGroundedPin(int pin) {
+        return true;
+    }
+
+    @Override
+    public boolean hasGndConnected(int pin) {
         return true;
     }
 
@@ -131,8 +141,8 @@ public class Gnd implements Component, Serializable {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
             temp.tellToUpdate(this);
-            temp.resetPinIfContain(this);
             temp.setGrounded(false, cp.getPin());
+            temp.resetPinIfContain(this);
             temp.tellToUpdate(null);
         }
         connectedComponent.clear();
@@ -166,7 +176,7 @@ public class Gnd implements Component, Serializable {
     @Override
     public void update() {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
-            cp.getComponent().setGrounded(true,cp.getPin());
+           // cp.getComponent().setGrounded(true,cp.getPin());
         }
     }
 

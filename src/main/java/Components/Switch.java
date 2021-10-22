@@ -82,7 +82,17 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
+    public boolean checkIfConnectedPinAreUnderVcc(int pin) {
+        return state;
+    }
+
+    @Override
     public boolean getGroundedPin(int pin) {
+        return false;
+    }
+
+    @Override
+    public boolean hasGndConnected(int pin) {
         return false;
     }
 
@@ -98,6 +108,14 @@ public class Switch implements Component, Serializable {
 
     @Override
     public void resetPinIfContain(Component ID) {
+        ComponentAndRelativePin temp = null;
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            if (cp.getComponent() == ID){
+                temp = cp;
+                break;
+            }
+        }
+        connectedComponent.remove(ID.getIDComponent(),temp);
     }
 
     @Override

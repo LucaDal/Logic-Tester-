@@ -67,8 +67,23 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
+    public boolean checkIfConnectedPinAreUnderVcc(int pin) {
+        return true;
+    }
+
+    @Override
     public boolean getGroundedPin(int pin) {
         return isGrounded;
+    }
+
+    @Override
+    public boolean hasGndConnected(int pin) {
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            if (cp.getComponent().getType().equals("gnd")){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -127,6 +142,10 @@ public class Vcc implements Component, Serializable {
         }else{
             removeConnection();
             connectedComponent.clear();
+        }
+        if (connectedComponent.size() == 0){
+            this.state = true;
+            this.isGrounded = true;
         }
     }
 

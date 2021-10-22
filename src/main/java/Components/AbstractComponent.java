@@ -1,5 +1,7 @@
 package Components;
 
+import com.google.common.collect.Multimap;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -58,8 +60,13 @@ public abstract class AbstractComponent implements Component, Serializable {
         this.y = position.y;
     }
 
+    public abstract boolean checkIfConnectedPinAreUnderVcc(int pin);
+
     @Override
     public abstract boolean getGroundedPin(int pin);
+
+    @Override
+    public abstract boolean hasGndConnected(int pin);
 
     @Override
     public boolean getPinState(int pin) {
@@ -82,12 +89,14 @@ public abstract class AbstractComponent implements Component, Serializable {
 
     @Override
     public void resetPinIfContain(Component ID) {
+
     }
 
     @Override
     public abstract void removeConnectionFromPins(int pin);
     @Override
     public void tellToUpdate(Component fromThisComponent) {
+        this.toldToUpdate = fromThisComponent;
     }
 
     abstract void writeObject(java.io.ObjectOutputStream stream) throws IOException;

@@ -10,12 +10,19 @@ public interface Component {
     int getSizeHeight();
     int getIDComponent();
     void setPosition(Point position);
+    boolean checkIfConnectedPinAreUnderVcc(int pin);
     /**
      * @param pin is the pin you want to check
      * @return return true if the passed pin is grounded
      */
     boolean getGroundedPin(int pin);
 
+    /**
+     * needed to repristin the non Ground situation
+     * @return true if connected to a gnd
+     * @param pin
+     */
+    boolean hasGndConnected(int pin);
     boolean getPinState(int pin);
     /**
      * called after two component will be connected
