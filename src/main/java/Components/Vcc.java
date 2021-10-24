@@ -16,7 +16,7 @@ public class Vcc implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = 2344710408277521742L;
     final String type = "vcc";
-    boolean state = true, isGrounded = false, imBeenDeleted = false,setGroundCall = false;
+    boolean state = true, isGrounded = false, imBeenDeleted = false, setGroundCall = false;
     Image img;
     int sizeWidth, sizeHeight, x, y, ID;
     JPanel parent;
@@ -33,7 +33,8 @@ public class Vcc implements Component, Serializable {
         initialize();
 
     }
-    private void initialize(){
+
+    private void initialize() {
         BufferedImage imgb = null;
         try {
             String path = System.getProperty("user.dir");
@@ -79,7 +80,7 @@ public class Vcc implements Component, Serializable {
     @Override
     public boolean hasGndConnected(int pin) {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
-            if (cp.getComponent().getType().equals("gnd")){
+            if (cp.getComponent().getType().equals("gnd")) {
                 return true;
             }
         }
@@ -98,8 +99,17 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public void resetPinIfContain(Component ID) {
-        if (connectedComponent.containsValue(ID)) {
-            connectedComponent.remove(ID.getIDComponent(),ID);
+        boolean containsTheComponent = false;
+        ComponentAndRelativePin toDelete = null;
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            Component temp = cp.getComponent();
+            if (temp == ID) {
+                containsTheComponent = true;
+                toDelete = cp;
+            }
+        }
+        if (containsTheComponent) {
+            connectedComponent.remove(ID.getIDComponent(), toDelete);
         }
         checkIfConnectedToSomeGroundedComp();
     }
@@ -125,8 +135,8 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public boolean setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
-        if (!anotherComponent.getType().equalsIgnoreCase("gnd")){
-            connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
+        if (!anotherComponent.getType().equalsIgnoreCase("gnd")) {
+            connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent, otherPin));
             if (anotherComponent.getGroundedPin(otherPin)) {
                 setGrounded(true, 0);
             }
@@ -137,16 +147,10 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public void removeConnectionFromPins(int pin) {
-        if (isGrounded){
-            JOptionPane.showMessageDialog(parent,"cannot disconnect while is grounded","Impossible disconnection",JOptionPane.WARNING_MESSAGE);
-        }else{
-            removeConnection();
-            connectedComponent.clear();
-        }
-        if (connectedComponent.size() == 0){
-            this.state = true;
-            this.isGrounded = true;
-        }
+        removeConnection();
+        connectedComponent.clear();
+        this.state = true;
+        this.isGrounded = true;
     }
 
     @Override
@@ -160,7 +164,7 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public void update() {
-        if (!setGroundCall){
+        if (!setGroundCall) {
             checkIfConnectedToSomeGroundedComp();
         }
         if (!imBeenDeleted) {
@@ -183,14 +187,14 @@ public class Vcc implements Component, Serializable {
         boolean flag = false;
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
-            if (toldToUpdate != temp){
+            if (toldToUpdate != temp) {
                 if (temp.getGroundedPin(cp.getPin())) {
                     flag = true;
                     break;
                 }
             }
         }
-        setGrounded(flag,1);
+        setGrounded(flag, 1);
     }
 
     @Override
@@ -250,28 +254,28 @@ public class Vcc implements Component, Serializable {
     @Serial
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
 
-        this.state =stream.readBoolean();
-        this.isGrounded =stream.readBoolean();
-        this.sizeWidth =stream.readInt();
-        this.sizeHeight =stream.readInt();
-        this.x =stream.readInt();
-        this.y =stream.readInt();
-        this.ID =stream.readInt();
-        this.parent =(JPanel)stream.readObject();
-        this.connectedComponent =(Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
-        this.toldToUpdate =(Component)stream.readObject();
+        this.state = stream.readBoolean();
+        this.isGrounded = stream.readBoolean();
+        this.sizeWidth = stream.readInt();
+        this.sizeHeight = stream.readInt();
+        this.x = stream.readInt();
+        this.y = stream.readInt();
+        this.ID = stream.readInt();
+        this.parent = (JPanel) stream.readObject();
+        this.connectedComponent = (Multimap<Integer, ComponentAndRelativePin>) stream.readObject();
+        this.toldToUpdate = (Component) stream.readObject();
         initialize();
     }
 
     @Override
     public String toString() {
-        return "Vcc{"+
+        return "Vcc{" +
                 ", state=" + state +
                 ", isGrounded=" + isGrounded +
                 ", x=" + x +
                 ", y=" + y +
                 ", ID=" + ID +
-               // ", connectedComponent=" + connectedComponent.toString() +
+                // ", connectedComponent=" + connectedComponent.toString() +
                 '}';
     }
 }

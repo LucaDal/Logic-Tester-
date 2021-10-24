@@ -11,8 +11,8 @@ import java.io.Serializable;
 public abstract class AbstractComponent implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = -6138200399111000970L;
-    protected int x,y,ID,sizeWidth,sizeHeight,pinOfTheClass = 1;
-    protected boolean state = false,isGrounded;
+    protected int x,y,ID,sizeWidth,sizeHeight;
+    protected boolean state = false;
     protected Component toldToUpdate;
 
     JPanel parent;
@@ -84,13 +84,11 @@ public abstract class AbstractComponent implements Component, Serializable {
 
     @Override
     public Point inputTarget(int x, int y) {
-        return new Point(this.ID,0);
+        return new Point(this.ID,1);
     }
 
     @Override
-    public void resetPinIfContain(Component ID) {
-
-    }
+    public abstract void resetPinIfContain(Component ID);
 
     @Override
     public abstract void removeConnectionFromPins(int pin);

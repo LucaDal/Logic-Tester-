@@ -12,10 +12,10 @@ import java.io.File;
 import java.io.IOException;
 
 public class Buttons extends JPanel implements ActionListener {
-    JButton npnT, vcc, select, gnd, delete, switchButton,debug, bitDisplay,pnpT;
+    JButton npnT, vcc, select, gnd, delete, switchButton,debug, bitDisplay,pnpT,text;
     Components.Interface Interface;
     int width = 40, height = 40;
-    private Image imgSwitch,imgBitDisplay,imgGnd,imgVcc,imgPnp,imgNpn,imgSelect,imgDelete;
+    private Image imgSwitch,imgBitDisplay,imgGnd,imgVcc,imgPnp,imgNpn,imgSelect,imgDelete,imgText;
 
     public Buttons(Interface inter) {
         setBackground(Color.GRAY);//TODO remove comments when implewmentinh images
@@ -65,6 +65,10 @@ public class Buttons extends JPanel implements ActionListener {
         bitDisplay.setContentAreaFilled(false);
         bitDisplay.setIcon(new ImageIcon(imgBitDisplay));
 
+        text = new JButton();
+        text.setPreferredSize(new Dimension(width, height));
+        text.setContentAreaFilled(false);
+        text.setIcon(new ImageIcon(imgText));
 
         debug = new JButton("D");
         debug.setPreferredSize(new Dimension(width, height));
@@ -80,6 +84,7 @@ public class Buttons extends JPanel implements ActionListener {
         switchButton.addActionListener(this);
         bitDisplay.addActionListener(this);
         debug.addActionListener(this);
+        text.addActionListener(this);
 
         /* inserirsco Interface bottoni nel Jpanel */
         GridBagConstraints c = new GridBagConstraints();
@@ -126,11 +131,16 @@ public class Buttons extends JPanel implements ActionListener {
         c.weighty = 0;
         c.gridx = 0;
         c.gridy = 8;
+        c.weighty = 0;
+        add(text, c);
+        c.weighty = 0;
+        c.gridx = 0;
+        c.gridy = 9;
         c.weighty = 1;
         add(debug, c);
     }
     private void initialize(){
-        BufferedImage imgSel,imgDel,imgBit,imgSwi,imgNp,imgPn,imgVc,imgGn;
+        BufferedImage imgSel,imgDel,imgBit,imgSwi,imgNp,imgPn,imgVc,imgGn,imgTe;
         int scaleAdjust = 15;
         try {
             String path = System.getProperty("user.dir");
@@ -150,6 +160,8 @@ public class Buttons extends JPanel implements ActionListener {
             imgVcc = imgVc.getScaledInstance(width-scaleAdjust-5, height-scaleAdjust-5, Image.SCALE_SMOOTH);
             imgGn = ImageIO.read(new File(path + "\\src\\main\\resources\\gnd.png"));
             imgGnd = imgGn.getScaledInstance(width-scaleAdjust, height-scaleAdjust, Image.SCALE_SMOOTH);
+            imgTe = ImageIO.read(new File(path + "\\src\\main\\resources\\text.png"));
+            imgText = imgTe.getScaledInstance(width-scaleAdjust, height-scaleAdjust, Image.SCALE_SMOOTH);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -175,6 +187,8 @@ public class Buttons extends JPanel implements ActionListener {
             Interface.addBitDisplay();
         } else if (debug == source) {
             Interface.debug();
+        } else if (text == source) {
+            Interface.addText();
         }
     }
 

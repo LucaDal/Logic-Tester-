@@ -141,7 +141,7 @@ public class Gnd implements Component, Serializable {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
             temp.tellToUpdate(this);
-            temp.setGrounded(false, cp.getPin());
+            //temp.setGrounded(false, cp.getPin());
             temp.resetPinIfContain(this);
             temp.tellToUpdate(null);
         }

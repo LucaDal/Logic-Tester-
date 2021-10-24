@@ -200,7 +200,9 @@ public class Switch implements Component, Serializable {
             Component temp = cp.getComponent();
             if (temp != toldToUpdate) {
                 temp.tellToUpdate(this);
-                temp.setState(cp.getPin(), this.state);
+                if (!temp.getGroundedPin(cp.getPin())){
+                    temp.setState(cp.getPin(), this.state);
+                }
                 temp.tellToUpdate(null);
             }
         }

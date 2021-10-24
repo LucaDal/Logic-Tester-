@@ -8,13 +8,11 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 
 public class DisplayFrame extends JFrame {
-    Interface inter = new Interface();
+    ActionBar actionBar = new ActionBar();
+    Interface inter = new Interface(actionBar);
     Buttons buttonsInterfaces = new Buttons(inter);
     Menu menuInterfaces = new Menu(inter,inter);
-
     public DisplayFrame() {
-
-
         super("Logic Tester");
         setLayout(new BorderLayout());
         Image icon = Toolkit.getDefaultToolkit().getImage(System.getProperty("user.dir") + "\\src\\main\\resources\\npn.png");
@@ -26,6 +24,7 @@ public class DisplayFrame extends JFrame {
         add(menuInterfaces,BorderLayout.NORTH);
         add(buttonsInterfaces, BorderLayout.LINE_START);
         add(inter, BorderLayout.CENTER);
+        add(actionBar,BorderLayout.SOUTH);
        // setUndecorated(true);
         pack();
         setMinimumSize(new Dimension( 200,280));//TODO definire a fine lavoro

@@ -14,7 +14,6 @@ import java.util.HashMap;
 
 public class ReadObjects {
     JPanel parent;
-    HashMap<Integer, Component> componentMap;
     JFileChooser open = new JFileChooser();
     int option;
 
@@ -57,5 +56,8 @@ public class ReadObjects {
 
     public HashMap<Line, ArrayList<Integer>> readLines() {
         return lines;
+    }
+    public String getProjectName() {
+        return open.getSelectedFile().getName();
     }
 }

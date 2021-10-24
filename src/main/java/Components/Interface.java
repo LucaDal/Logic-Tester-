@@ -2,6 +2,7 @@ package Components;
 
 import Savings.ReadObjects;
 import Savings.WriteObjects;
+import WindowElements.ActionBar;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,13 +23,14 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     //dont use pin = 1 - 4 - 5 -> are used into returnPosition
     boolean npnTransistorToSet = false, vccToSet = false, gndToSet = false, deleteIsSelected = false, debugIsSelected = false,
             switchIsSelected = false, selectIsSelected = false, setConnection = false, mouseDragged = false, zoom = false,
-            linesAlreadyEliminated = false, bitDisplayIsSelected = false,pnpTransistorToSet = false;
+            linesAlreadyEliminated = false, bitDisplayIsSelected = false,pnpTransistorToSet = false,textIsSelected = false;
     private Point tempConnectionPointFirstCall = new Point();
-
+    private ActionBar actionBar;
 //  store the first clicked component id and the second one
 
 
-    public Interface() {
+    public Interface(ActionBar actionBar) {
+        this.actionBar = actionBar;
         setBackground(Color.LIGHT_GRAY);
         Dimension size = new Dimension(900, 700);
         setPreferredSize(size);
@@ -146,7 +148,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         if (vccToSet) {
             System.out.println("adding a Vcc plug n: ");
             componentMap.put(IDComponent, new Vcc(this, IDComponent, e.getX(), e.getY(), 15, 15));
-            // vccToSet = false;
             IDComponent++;
         }
         if (gndToSet) {
@@ -158,20 +159,22 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         if (switchIsSelected) {
             System.out.println("adding a switch n: " + IDComponent);
             componentMap.put(IDComponent, new Switch(this, IDComponent, e.getX(), e.getY(), 22, 28));
-            // gndToSet = false;
             IDComponent++;
         }
         if (deleteIsSelected) { //se l'ID tornato ( ovvero l'oggetto da eliminare è Vcc ) allora è possibile settare il pin to false
             int IdReturned = checkMouseOverComponent(e);
             if (IdReturned != 0 && IdReturned <= IDComponent) {
                 deleteLine(IdReturned);
-
                 componentMap.get(IdReturned).removeConnection();
                 componentMap.remove(IdReturned);
                 if (componentMap.size() == 0) {
                     IDComponent = 1;
                 }
             }
+        }
+        if (textIsSelected){
+            componentMap.put(IDComponent, new Text(this, IDComponent, e.getX(), e.getY(), 30, 20));
+            IDComponent++;
         }
         if (selectIsSelected) {
             int IdReturned = checkMouseOverComponent(e);
@@ -185,7 +188,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                     }
                 }
             }else {
-
                 //System.out.println("IDComponent tornato: " + IdReturned);
                 if (IdReturned != 0) {
                     Components.Component componentReturned = componentMap.get(IdReturned);
@@ -196,10 +198,14 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                             error.printStackTrace();
                             System.out.println("overflow dopo click dello switch");
                         }
-                    } else if (!setConnection) {
+                    }else if(componentReturned.getType().equals("text")){
+                        componentReturned.setState(1,true);
+                    }
+                    else if (!setConnection) {
                         IdReturnedTemp = IdReturned;
                         if ((tempConnectionPointFirstCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
                             setConnection = true;
+                            actionBar.setStringToPrint("Connecting pin:"+tempConnectionPointFirstCall.y);
                             System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
                         }
                     } else {
@@ -210,10 +216,12 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                                 connect(tempConnectionPointFirstCall, tempConnectionPointSecondCall);
                             }
                         }
+                        actionBar.setStringToPrint("");
                         setConnection = false;
                     }
                 } else {//se il secondo click non è un componente
                     if (setConnection) {
+                        actionBar.setStringToPrint("");
                         setConnection = false;
                     }
                 }
@@ -229,7 +237,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             componentMap.put(IDComponent, new BitDisplay(this, IDComponent, e.getX(), e.getY(), 22, 28 + 8));//8 is the other oval for the gnd
             IDComponent++;
         }
-
+        actionBar.setNumberComponent(IDComponent-1);
         repaint();
     }
 
@@ -375,9 +383,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
 
         } catch (StackOverflowError e) {
-            deleteLine(firstIDComponentPin.x);
-            JOptionPane.showMessageDialog(this,"Error connecting","infinite loop",JOptionPane.WARNING_MESSAGE);
-            System.out.println("errore nella connessione; loop infinito impossibile collegare");
+            deleteLine(firstIDComponentPin.x,secondIDComponentPin.x);
+            JOptionPane.showMessageDialog(this,"Connection error","Something went wrong; if it won't work try deleting the component",JOptionPane.WARNING_MESSAGE);
         }
 
     }
@@ -392,6 +399,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         if (ro.readComponents() != null) {
             componentMap = ro.readComponents();
             IDComponent = getLastIntegerValue();
+            actionBar.setNameOfTheProject(ro.getProjectName());
         }
         if (ro.readLines() != null) {
             lines = ro.readLines();
@@ -473,6 +481,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         bitDisplayIsSelected = false;
         npnTransistorToSet = false;
         pnpTransistorToSet = false;
+        textIsSelected = false;
     }
 
 
@@ -578,6 +587,11 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         bitDisplayIsSelected = true;
     }
 
+    public void addText() {
+        resetAll();
+        textIsSelected = true;
+    }
+
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         zoom = true;
@@ -598,6 +612,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         IDComponent = 1;
         lines.clear();
         componentMap.clear();
+        actionBar.setNameOfTheProject("");
         repaint();
     }
 }
