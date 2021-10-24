@@ -174,7 +174,12 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         if (textIsSelected){
             componentMap.put(IDComponent, new Text(this, IDComponent, e.getX(), e.getY(), 30, 20));
-            IDComponent++;
+            Component componentReturned = componentMap.get(IDComponent);
+            if (componentReturned.isGrounded()){
+                componentMap.remove(IDComponent);
+            }else {
+                IDComponent++;
+            }
         }
         if (selectIsSelected) {
             int IdReturned = checkMouseOverComponent(e);
@@ -190,7 +195,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }else {
                 //System.out.println("IDComponent tornato: " + IdReturned);
                 if (IdReturned != 0) {
-                    Components.Component componentReturned = componentMap.get(IdReturned);
+                    Component componentReturned = componentMap.get(IdReturned);
                     if (componentReturned.getType().equalsIgnoreCase("switch") && componentReturned.inputTarget(e.getX(), e.getY()).y == 0) {
                         try {
                             componentReturned.setState(Switch.pinToChangeState, !componentReturned.getState(0));
@@ -199,13 +204,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                             System.out.println("overflow dopo click dello switch");
                         }
                     }else if(componentReturned.getType().equals("text")){
-                        componentReturned.setState(1,true);
+                        componentReturned.setState(0,false);
                     }
                     else if (!setConnection) {
                         IdReturnedTemp = IdReturned;
                         if ((tempConnectionPointFirstCall = componentReturned.inputTarget(e.getX(), e.getY())).y != 0) {
                             setConnection = true;
-                            actionBar.setStringToPrint("Connecting pin:"+tempConnectionPointFirstCall.y);
+                            actionBar.setStringToPrint("Connecting a: "+ componentReturned.getType());
                             System.out.println("initialiting connection between component ID: " + tempConnectionPointFirstCall.x + ", pin: " + tempConnectionPointFirstCall.y);
                         }
                     } else {
@@ -516,7 +521,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         }
         if (IdComponentMoved != 0 && IdComponentMoved < IDComponent) {
             Component c = componentMap.get(IdComponentMoved);
-            c.setPosition(new Point(e.getX() - c.getSizeWidth() / 2, e.getY() - c.getSizeWidth() / 2));
+            c.setPosition(new Point(e.getX() - c.getSizeWidth() / 2, e.getY() - c.getSizeHeight() / 2));
         } else {
             if (!linesAlreadyEliminated) {
                 tempLines.addAll(lines.keySet());
