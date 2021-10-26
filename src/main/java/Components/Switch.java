@@ -195,6 +195,11 @@ public class Switch implements Component, Serializable {
     }
 
     @Override
+    public void tellToUpdate(Component fromThisComponent, int pin) {
+
+    }
+
+    @Override
     public void update() {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();

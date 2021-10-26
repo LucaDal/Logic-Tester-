@@ -21,6 +21,7 @@ public class Transistor implements Component, Serializable {
     private int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
     private JPanel parent;
     private Component toldToUpdate = null;
+    private int toldToUpdateFromPin;
     private Component toConnect;
     private Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinA = ArrayListMultimap.create();
     private Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinB = ArrayListMultimap.create();
@@ -101,32 +102,32 @@ public class Transistor implements Component, Serializable {
     public boolean hasGndConnected(int pin) {
         if (pin == pinA) {
             if (B) {
-                return isConnectedToAGnd(transistorConnectedToPinA) || isConnectedToAGnd(transistorConnectedToPinC);
+                return isConnectedToAGnd(transistorConnectedToPinA,pin) || isConnectedToAGnd(transistorConnectedToPinC,pin);
             }
-            return isConnectedToAGnd(transistorConnectedToPinA);
+            return isConnectedToAGnd(transistorConnectedToPinA,pin);
         }
         if (pin == pinB) {
-            return isConnectedToAGnd(transistorConnectedToPinB);
+            return isConnectedToAGnd(transistorConnectedToPinB,pin);
         }
         if (B) {
-            return isConnectedToAGnd(transistorConnectedToPinC) || isConnectedToAGnd(transistorConnectedToPinA);
+            return isConnectedToAGnd(transistorConnectedToPinC,pin) || isConnectedToAGnd(transistorConnectedToPinA,pin);
         }
-        return isConnectedToAGnd(transistorConnectedToPinC);
+        return isConnectedToAGnd(transistorConnectedToPinC,pin);
     }
 
-    private boolean isConnectedToAGnd(Multimap<Integer, ComponentAndRelativePin> multiMap) {
+    private boolean isConnectedToAGnd(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
-            if (toldToUpdate != temp) {
+            if (toldToUpdate != temp || toldToUpdateFromPin != cp.getPin()) {
                 if (temp.getType().equals("gnd")) {
                     return true;
                 } else {
-                    temp.tellToUpdate(this);
+                    temp.tellToUpdate(this,pin);
                     if (temp.hasGndConnected(cp.getPin())) {
-                        temp.tellToUpdate(null);
+                        temp.tellToUpdate(null,0);
                         return true;
                     }
-                    temp.tellToUpdate(null);
+                    temp.tellToUpdate(null,0);
                 }
             }
         }
@@ -152,7 +153,7 @@ public class Transistor implements Component, Serializable {
      *
      * @param ID is the ID of the element which was allocated with some pin
      */
-    public void resetPinIfContain(Component ID) {//TODO fix here forse devi aggiungere da quali componenti arriva la corrente
+    public void resetPinIfContain(Component ID) {
         updateHashMap(transistorConnectedToPinA, ID, pinA);
         updateHashMap(transistorConnectedToPinB, ID, pinB);
         updateHashMap(transistorConnectedToPinC, ID, pinC);
@@ -193,25 +194,25 @@ public class Transistor implements Component, Serializable {
             boolean connectedToVcc = false;
             boolean connectedToGnd = grounded;
             if (pin == pinA) {
-                if (!grounded){
+                if (!grounded) {
                     connectedToGnd = hasGndConnected(pinA);
                 }
             }
             if (pin == pinC) {
-                if (!grounded){
+                if (!grounded) {
                     connectedToGnd = hasGndConnected(pinC);
                 }
             }
             if (pin == pinB) {
-                if (!grounded){
+                if (!grounded) {
                     connectedToGnd = hasGndConnected(pinB);
                 }
             }
             if (getState(pin) != (connectedToVcc = checkIfConnectedPinAreUnderVcc(pin))) {
                 setState(pin, connectedToVcc);
             }
-            if (getGroundedPin(pin) != connectedToGnd){
-                setGrounded(connectedToGnd,pin);
+            if (getGroundedPin(pin) != connectedToGnd) {
+                setGrounded(connectedToGnd, pin);
             }
         }
     }
@@ -224,25 +225,25 @@ public class Transistor implements Component, Serializable {
      */
     public boolean checkIfConnectedPinAreUnderVcc(int pin) {
         if (pin == pinA) {
-            if (B && C) {
-                return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinA) || checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinC);
+            if (B) {
+                return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinA,pinA) || checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinC,pinC);
             }
             if (transistorConnectedToPinA.size() != 0) {
-                return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinA);
-            }else {
+                return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinA,pinA);
+            } else {
                 return false;
             }
         } else if (pin == pinB) {
-            if (transistorConnectedToPinB.size() != 0){
-                return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinB);
+            if (transistorConnectedToPinB.size() != 0) {
+                return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinB,pinB);
             }
             return false;
-        } else if (B && A) {
-            return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinC) || checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinA);
+        } else if (B) {
+            return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinC,pinC) || checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinA,pinA);
         }
         if (transistorConnectedToPinC.size() != 0) {
-            return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinC);
-        }else{
+            return checkIfConnectedPinAreUnderVccPerPin(transistorConnectedToPinC,pinC);
+        } else {
             return false;
         }
     }
@@ -252,21 +253,21 @@ public class Transistor implements Component, Serializable {
      * @param multiMap of the componentMap to check
      * @return true if a pin is connected to a vcc which is not grounded
      */
-    private boolean checkIfConnectedPinAreUnderVccPerPin(Multimap<Integer, ComponentAndRelativePin> multiMap) {
+    private boolean checkIfConnectedPinAreUnderVccPerPin(Multimap<Integer, ComponentAndRelativePin> multiMap,int pin) {
         boolean flagState = false;
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
-            if (cp.getComponent() != toldToUpdate) {
+            if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
                 if (temp.getType().equals("vcc") && !temp.isGrounded() || (temp.getType().equals("switch") && temp.getState(1))) {
                     flagState = true;
                     break;
                 } else {
-                    temp.tellToUpdate(this);
+                    temp.tellToUpdate(this,pin);
                     if (temp.checkIfConnectedPinAreUnderVcc(cp.getPin())) {
-                        temp.tellToUpdate(null);
+                        temp.tellToUpdate(null,0);
                         return true;
                     }
-                    temp.tellToUpdate(null);
+                    temp.tellToUpdate(null,0);
                 }
             }
         }
@@ -467,6 +468,7 @@ public class Transistor implements Component, Serializable {
                     updateHashMapToGroundOrNot(transistorConnectedToPinC, true);
                 } else {
                     CisGrounded = false;
+                    updateHashMapToGroundOrNot(transistorConnectedToPinC, false);
                 }
             }
             AisGrounded = state;
@@ -485,9 +487,9 @@ public class Transistor implements Component, Serializable {
                 updateHashMapToGroundOrNot(transistorConnectedToPinA, false);
             }
         }
-        if (pin == pinB) {
-            BisGrounded = state;
+        if (pin == pinB) {//TODO fix here
             updateHashMapToGroundOrNot(transistorConnectedToPinB, state);
+          //  updateTransistor(transistorConnectedToPinB,B);
         }
         //PARTE SPECULARE AD A
         if (pinC == pin) {
@@ -496,6 +498,7 @@ public class Transistor implements Component, Serializable {
                     updateHashMapToGroundOrNot(transistorConnectedToPinA, true);
                 } else {
                     AisGrounded = false;
+                    updateHashMapToGroundOrNot(transistorConnectedToPinA, false);
                 }
             }
             CisGrounded = state;
@@ -510,15 +513,12 @@ public class Transistor implements Component, Serializable {
                 setState(pinC, false);
                 return;
             }//controllo se oltre al gnd che rimuovo ce ne sono altri connessi in parallelo
-            if (!hasGndConnected(pinC)) {
+            if (!hasGndConnected(pinC)) {//TODO it can be faster if you wont do it again after it comes from setState
                 updateHashMapToGroundOrNot(transistorConnectedToPinC, false);
             }
         }
 
         this.isGrounded = CisGrounded || AisGrounded || BisGrounded;
-
-        tellToUpdateAfterGrounding(transistorConnectedToPinA);
-        tellToUpdateAfterGrounding(transistorConnectedToPinC);
     }
 
     /**
@@ -534,28 +534,6 @@ public class Transistor implements Component, Serializable {
                 temp.tellToUpdate(this);
                 temp.setGrounded(state, cp.getPin());
                 temp.tellToUpdate(null);
-            }
-        }
-    }
-
-    /**
-     * update the multiMap passed after being grounded
-     *
-     * @param multiMap to updated pin to ground
-     */
-    private void tellToUpdateAfterGrounding(Multimap<Integer, ComponentAndRelativePin> multiMap) {//TODO probabilmente è inutile eccetto per l'update
-        for (ComponentAndRelativePin cp : multiMap.values()) {
-            Component temp = cp.getComponent();
-            if (temp.getType().equalsIgnoreCase("transistor")) {
-                if (temp.isGrounded() && !isGrounded) {
-                    temp.tellToUpdate(this);
-                    temp.setGrounded(false, cp.getPin());
-                    temp.tellToUpdate(null);
-                }
-            } else {
-                if (temp != toldToUpdate) {
-                    temp.update();
-                }
             }
         }
     }
@@ -623,7 +601,7 @@ public class Transistor implements Component, Serializable {
                     C = false;
                 }
             }
-            if (!A && B && C){
+            if (!A && B && C) {
                 AisUpdated = true;
                 A = true;
             }
@@ -649,12 +627,12 @@ public class Transistor implements Component, Serializable {
                 }
                 if (!state) {
                     if (C && !checkIfConnectedPinAreUnderVcc(pinC)) {
-                            CisUpdated = true;
-                            C = false;
+                        CisUpdated = true;
+                        C = false;
                     }
                     if (A && !checkIfConnectedPinAreUnderVcc(pinA)) {
-                            AisUpdated = true;
-                            A = false;
+                        AisUpdated = true;
+                        A = false;
                     }
                     if (AisGrounded && !hasGndConnected(pinA)) {
                         setGrounded(false, pinA);
@@ -662,11 +640,11 @@ public class Transistor implements Component, Serializable {
                     if (CisGrounded && !hasGndConnected(pinC)) {
                         setGrounded(false, pinC);
                     }
-                    if (!AisGrounded && !A && checkIfConnectedPinAreUnderVcc(pinA)){
+                    if (!AisGrounded && !A && checkIfConnectedPinAreUnderVcc(pinA)) {
                         AisUpdated = true;
                         A = true;
                     }
-                    if (!CisGrounded && !C && checkIfConnectedPinAreUnderVcc(pinC)){
+                    if (!CisGrounded && !C && checkIfConnectedPinAreUnderVcc(pinC)) {
                         CisUpdated = true;
                         C = true;
                     }
@@ -684,7 +662,8 @@ public class Transistor implements Component, Serializable {
                     AisUpdated = true;
                     A = true;
                 }
-            }if (!C && B && A){
+            }
+            if (!C && B && A) {
                 CisUpdated = true;
                 C = true;
             }
@@ -702,6 +681,12 @@ public class Transistor implements Component, Serializable {
     @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
+    }
+
+    @Override
+    public void tellToUpdate(Component fromThisComponent, int pin) {
+        this.toldToUpdate = fromThisComponent;
+        this.toldToUpdateFromPin = pin;
     }
 
     @Override

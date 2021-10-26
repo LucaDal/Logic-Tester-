@@ -14,6 +14,8 @@ public abstract class AbstractComponent implements Component, Serializable {
     protected int x,y,ID,sizeWidth,sizeHeight;
     protected boolean state = false;
     protected Component toldToUpdate;
+    protected int toldToUpdateFromPin;
+
 
     JPanel parent;
 
@@ -95,6 +97,12 @@ public abstract class AbstractComponent implements Component, Serializable {
     @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
+    }
+
+    @Override
+    public void tellToUpdate(Component fromThisComponent, int pin) {
+        this.toldToUpdate = fromThisComponent;
+        this.toldToUpdateFromPin = pin;
     }
 
     abstract void writeObject(java.io.ObjectOutputStream stream) throws IOException;

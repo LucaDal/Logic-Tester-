@@ -229,6 +229,11 @@ public class Vcc implements Component, Serializable {
     }
 
     @Override
+    public void tellToUpdate(Component fromThisComponent, int pin) {
+
+    }
+
+    @Override
     public String getType() {
         return type;
     }

@@ -63,5 +63,6 @@ public interface Component {
     boolean getState(int pin);
     void setState(int pin,boolean state);
     void tellToUpdate(Component fromThisComponent);
+    void tellToUpdate(Component fromThisComponent,int pin);
     void update();
 }

@@ -54,6 +54,7 @@ public class Text extends AbstractComponent {
 
     @Override
     public void paintComponent(Graphics g) {
+        g.setColor(Color.black);
         g.fillRect(x, y, sizeWidth, sizeHeight);
         g.setColor(Color.WHITE);
         g.fillRect(x + 2, y + 2, sizeWidth - 4, sizeHeight - 4);
@@ -119,6 +120,11 @@ public class Text extends AbstractComponent {
             this.content = field.getText();
             setWidthByText();
         }
+    }
+
+    @Override
+    public void tellToUpdate(Component fromThisComponent, int pin) {
+
     }
 
     @Override

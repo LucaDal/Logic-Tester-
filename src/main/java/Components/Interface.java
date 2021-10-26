@@ -139,7 +139,6 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
         if (npnTransistorToSet) {
             System.out.println("adding a transistor n: " + IDComponent);
             componentMap.put(IDComponent, new Transistor(this, IDComponent, e.getX(), e.getY(), 30, 30));

@@ -121,7 +121,6 @@ public class Gnd implements Component, Serializable {
     @Override
     public boolean setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
         if (anotherComponent.getType().equalsIgnoreCase("vcc") || anotherComponent.getType().equalsIgnoreCase("switch")){
-            JOptionPane.showMessageDialog(parent,"cannot connect to GND component","Impossible connection",JOptionPane.WARNING_MESSAGE);
             return false;
         }else{
             connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
@@ -171,6 +170,11 @@ public class Gnd implements Component, Serializable {
     @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
+    }
+
+    @Override
+    public void tellToUpdate(Component fromThisComponent, int pin) {
+
     }
 
     @Override
