@@ -5,11 +5,9 @@ import Components.Interface;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.io.File;
 
 public class DisplayFrame extends JFrame {
-    ActionBar actionBar = new ActionBar();
-    Interface inter = new Interface(actionBar);
+    Interface inter = new Interface();
     Buttons buttonsInterfaces = new Buttons(inter);
     Menu menuInterfaces = new Menu(inter,inter);
     public DisplayFrame() {
@@ -20,11 +18,10 @@ public class DisplayFrame extends JFrame {
         /*key bindigs*/
         KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         manager.addKeyEventDispatcher(new MyDispatcher());
-
+        inter.setMenu(menuInterfaces);
         add(menuInterfaces,BorderLayout.NORTH);
         add(buttonsInterfaces, BorderLayout.LINE_START);
         add(inter, BorderLayout.CENTER);
-        add(actionBar,BorderLayout.SOUTH);
        // setUndecorated(true);
         pack();
         setMinimumSize(new Dimension( 200,280));//TODO definire a fine lavoro
@@ -40,25 +37,40 @@ public class DisplayFrame extends JFrame {
     private class MyDispatcher implements KeyEventDispatcher {//TODO implementing every button
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                inter.resetAll();
-            }
-            if (e.getKeyCode() == KeyEvent.VK_1) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE ) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.select);
                 inter.select();
-            }
-            if (e.getKeyCode() == KeyEvent.VK_2) {
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_1) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.npnT);
                 inter.addTransistorNpn();
-            }
-            if (e.getKeyCode() == KeyEvent.VK_3) {
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_2) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.pnpT);
                 inter.addTransistorPnp();
-            }
-            if (e.getKeyCode() == KeyEvent.VK_4) {
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_3) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.vcc);
                 inter.addVcc();
-            }
-            if (e.getKeyCode() == KeyEvent.VK_5) {
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_4) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.gnd);
                 inter.addGnd();
-            }
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_5) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.switchButton);
+                inter.addSwitch();
+            }else
             if (e.getKeyCode() == KeyEvent.VK_6) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.bitDisplay);
+                inter.addBitDisplay();
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_7) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.text);
+                inter.addText();
+            }else
+            if (e.getKeyCode() == KeyEvent.VK_8) {
+                buttonsInterfaces.setFocus(buttonsInterfaces.delete);
                 inter.delete();
             }
             return false;

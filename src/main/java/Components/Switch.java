@@ -13,24 +13,27 @@ public class Switch implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = -7039775726878008122L;
     static int pinToChangeState = 4;
-    final String type = "switch";
-    boolean state = false;
-    int sizeWidth, sizeHeight, x, y, ID;
-    JPanel parent;
-    Component toldToUpdate = null;
+    static int pinConnectionSwitch = 1;
+    private boolean state = false;
+    private int sizeWidth, sizeHeight, x, y, ID;
+    private JPanel parent;
+    private Component toldToUpdate = null;
+    private boolean isGrounded = false;
+    private boolean turnOn = false;
+
     private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
     public Switch(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
-        this.x = x - sizeWidth / 2;
-        this.y = y - sizeHeight / 2 + 5;
+        this.x = x;
+        this.y = y;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
     }
 
     @Override
     public String getType() {
-        return type;
+        return "switch";
     }
 
     @Override
@@ -39,10 +42,15 @@ public class Switch implements Component, Serializable {
         g.fillRect(x, y, sizeWidth, sizeHeight-7);
         g.setColor(Color.white);
         g.fillRect(x+3, y+3, sizeWidth-6, sizeHeight-7-6);
-        if (state) {
+        if (turnOn) {
             g.setColor(Color.RED);
             g.fillRect(x +  sizeWidth/2 - 2, y + sizeHeight / 2 -4,4,5);
-            g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);
+            if (!isGrounded){
+                g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);//ovale rosso
+            }else{
+                g.setColor(Color.BLACK);
+                g.fillOval(x + sizeWidth/2 - 4,y + sizeHeight -8,8,8);//ovale rosso
+            }
             g.setColor(Color.BLACK);
             g.fillRect(x +  sizeWidth/2 - 2, y + sizeHeight / 2 -9,4,5);
         } else {
@@ -88,7 +96,7 @@ public class Switch implements Component, Serializable {
 
     @Override
     public boolean getGroundedPin(int pin) {
-        return false;
+        return isGrounded();
     }
 
     @Override
@@ -116,16 +124,37 @@ public class Switch implements Component, Serializable {
             }
         }
         connectedComponent.remove(ID.getIDComponent(),temp);
+        checkIfConnectedToSomeGroundedComp();
     }
 
     @Override
     public Boolean isGrounded() {
-        return false;
+        return isGrounded;
+    }
+
+    void checkIfConnectedToSomeGroundedComp() {
+        boolean flag = false;
+        for (ComponentAndRelativePin cp : connectedComponent.values()) {
+            Component temp = cp.getComponent();
+            if (toldToUpdate != temp) {
+                if (temp.getGroundedPin(cp.getPin())) {
+                    flag = true;
+                    break;
+                }
+            }
+        }
+        setGrounded(flag, 1);
     }
 
     @Override
     public void setGrounded(boolean state, int pin) {
-
+        this.isGrounded = state;
+        if (turnOn && !state){
+            this.state = true;
+        }else if(this.state){
+            this.state = false;
+        }
+        update();
     }
 
     @Override
@@ -139,6 +168,7 @@ public class Switch implements Component, Serializable {
 
     @Override
     public void removeConnectionFromPins(int pin) {
+        isGrounded = false;
         removeConnection();
     }
 
@@ -164,7 +194,7 @@ public class Switch implements Component, Serializable {
     @Override
     public Point inputTarget(int x, int y) {
         if (x >=  this.x  && x <= this.x + this.sizeWidth && y >= this.y + this.sizeHeight -8 && y <= this.y + this.sizeHeight){
-            return new Point(this.ID,1);
+            return new Point(this.ID,pinConnectionSwitch);
         }
         return new Point(this.ID,0);
     }
@@ -183,8 +213,11 @@ public class Switch implements Component, Serializable {
      */
     @Override
     public void setState(int pin, boolean state) {
-        if (pin == pinToChangeState) {
+        if (pin == pinToChangeState && !isGrounded) {
+            turnOn = !turnOn;
             this.state = state;
+        }else if(pinToChangeState == pin){
+            turnOn = !turnOn;
         }
         update();
     }
@@ -192,6 +225,11 @@ public class Switch implements Component, Serializable {
     @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
+    }
+
+    @Override
+    public void rotateComponent() {
+
     }
 
     @Override
@@ -216,6 +254,8 @@ public class Switch implements Component, Serializable {
     @Serial
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeBoolean(state);
+        stream.writeBoolean(isGrounded);
+        stream.writeBoolean(turnOn);
         stream.writeInt(sizeWidth);
         stream.writeInt(sizeHeight);
         stream.writeInt(x);
@@ -228,6 +268,8 @@ public class Switch implements Component, Serializable {
     @Serial
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         this.state =stream.readBoolean();
+        this.isGrounded =stream.readBoolean();
+        this.turnOn =stream.readBoolean();
         this.sizeWidth =stream.readInt();
         this.sizeHeight =stream.readInt();
         this.x =stream.readInt();

@@ -15,30 +15,30 @@ import java.io.Serializable;
 public class Vcc implements Component, Serializable {
     @Serial
     private static final long serialVersionUID = 2344710408277521742L;
+    static int pinVcc = 4;
     final String type = "vcc";
-    boolean state = true, isGrounded = false, imBeenDeleted = false, setGroundCall = false;
-    Image img;
-    int sizeWidth, sizeHeight, x, y, ID;
-    JPanel parent;
-    Component toldToUpdate = null;
-    Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
+    private boolean state = true, isGrounded = false, imBeenDeleted = false, setGroundCall = false;
+    private Image img;
+    private int sizeWidth, sizeHeight, x, y, ID;
+    private JPanel parent;
+    private Component toldToUpdate = null;
+    private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
 
     public Vcc(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
-        this.x = x - sizeWidth / 2;
-        this.y = y - sizeHeight / 2;
+        this.x = x;
+        this.y = y;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
         initialize();
-
     }
 
     private void initialize() {
         BufferedImage imgb = null;
         try {
             String path = System.getProperty("user.dir");
-            imgb = ImageIO.read(new File(path + "\\src\\main\\resources\\vcc.png"));
+            imgb = ImageIO.read(new File(path + "/src/main/resources/vcc.png"));
             img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
         } catch (IOException ioException) {
             ioException.printStackTrace();
@@ -135,12 +135,15 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public boolean setConnection(Component anotherComponent, int ID, int otherPin, boolean state) {
-        if (!anotherComponent.getType().equalsIgnoreCase("gnd")) {
+        if (!anotherComponent.getType().equals("gnd") && !anotherComponent.getType().equals("vcc")) {
             connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent, otherPin));
             if (anotherComponent.getGroundedPin(otherPin)) {
                 setGrounded(true, 0);
             }
             return true;
+        }else if(anotherComponent.getType().equals("vcc")){
+            JOptionPane.showMessageDialog(parent, "Can't connect directly a Vcc to another Vcc component", "Impossible connection", JOptionPane.WARNING_MESSAGE);
+
         }
         return false;
     }
@@ -219,13 +222,18 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public Point inputTarget(int x, int y) {
-        return new Point(ID, 1);
+        return new Point(ID, pinVcc);
     }
 
 
     @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
+    }
+
+    @Override
+    public void rotateComponent() {
+
     }
 
     @Override

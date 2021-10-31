@@ -22,12 +22,13 @@ public class Gnd implements Component, Serializable {
     private JPanel parent;
     private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
     private Component toldToUpdate = null;
+    static final int pinGnd = 5;
 
     public Gnd(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
-        this.x = x - sizeWidth / 2;
-        this.y = y - sizeHeight / 2;
+        this.x = x;
+        this.y = y;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
         initialize();
@@ -36,7 +37,7 @@ public class Gnd implements Component, Serializable {
     private void initialize(){
         try {
             String path = System.getProperty("user.dir");
-            BufferedImage imgb = ImageIO.read(new File(path + "\\src\\main\\resources\\gnd.png"));
+            BufferedImage imgb = ImageIO.read(new File(path + "/src/main/resources/gnd.png"));
             img = imgb.getScaledInstance(sizeWidth, sizeHeight, Image.SCALE_SMOOTH);
         } catch (IOException ioException) {
             ioException.printStackTrace();
@@ -121,6 +122,7 @@ public class Gnd implements Component, Serializable {
     @Override
     public boolean setConnection(Component anotherComponent, int pin, int otherPin, boolean state) {
         if (anotherComponent.getType().equalsIgnoreCase("vcc") || anotherComponent.getType().equalsIgnoreCase("switch")){
+            JOptionPane.showMessageDialog(parent, "Can't connect directly a Gnd to a Vcc or a Switch component", "Impossible connection", JOptionPane.WARNING_MESSAGE);
             return false;
         }else{
             connectedComponent.put(anotherComponent.getIDComponent(), new ComponentAndRelativePin(anotherComponent,otherPin));
@@ -154,7 +156,7 @@ public class Gnd implements Component, Serializable {
 
     @Override
     public Point inputTarget(int x, int y) {
-        return new Point(ID, 1);
+        return new Point(ID, pinGnd);
     }
 
     @Override
@@ -173,15 +175,17 @@ public class Gnd implements Component, Serializable {
     }
 
     @Override
+    public void rotateComponent() {
+
+    }
+
+    @Override
     public void tellToUpdate(Component fromThisComponent, int pin) {
 
     }
 
     @Override
     public void update() {
-        for (ComponentAndRelativePin cp : connectedComponent.values()) {
-           // cp.getComponent().setGrounded(true,cp.getPin());
-        }
     }
 
     @Override

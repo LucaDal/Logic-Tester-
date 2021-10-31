@@ -11,6 +11,7 @@ import java.io.Serial;
 public class Text extends AbstractComponent {
     @Serial
     private static final long serialVersionUID = -3730397820612837281L;
+    static final int nonPin = 6;
     private String content = "";
     private int upperCase = 0;
     private JTextField field = new JTextField();
@@ -82,6 +83,11 @@ public class Text extends AbstractComponent {
     }
 
     @Override
+    public Point inputTarget(int x, int y) {
+        return new Point(this.ID,nonPin);
+    }
+
+    @Override
     public void resetPinIfContain(Component ID) {
     }
 
@@ -120,6 +126,11 @@ public class Text extends AbstractComponent {
             this.content = field.getText();
             setWidthByText();
         }
+    }
+
+    @Override
+    public void rotateComponent() {
+
     }
 
     @Override

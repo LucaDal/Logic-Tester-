@@ -19,6 +19,7 @@ public class ReadObjects {
 
     HashMap<Integer, Component> components = null;
     HashMap<Line, ArrayList<Integer>> lines = null;
+    boolean savedInGrid = false;
 
     public ReadObjects(JPanel parent) {
         this.parent = parent;
@@ -44,6 +45,7 @@ public class ReadObjects {
                 ObjectInputStream ois = new ObjectInputStream(stream);
                 components = (HashMap<Integer, Component>) ois.readObject();
                 lines = (HashMap<Line, ArrayList<Integer>>) ois.readObject();
+                savedInGrid = ois.readBoolean();
                 ois.close();
 
             } catch (IOException | ClassNotFoundException e) {
@@ -54,9 +56,11 @@ public class ReadObjects {
         return components;
     }
 
-    public HashMap<Line, ArrayList<Integer>> readLines() {
+    public HashMap<Line, ArrayList<Integer>> getLines() {
         return lines;
     }
+    public boolean getSavedInGrid() {return savedInGrid;}
+
     public String getProjectName() {
         return open.getSelectedFile().getName();
     }

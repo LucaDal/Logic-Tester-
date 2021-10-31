@@ -25,7 +25,7 @@ public class WriteObjects {
      *
      * to get Lines Hashmap call readLines();
      */
-    public void saveObjects(HashMap<Integer, Component> componentMap, HashMap<Line, ArrayList<Integer>> lines) {
+    public void saveObjects(HashMap<Integer, Component> componentMap, HashMap<Line, ArrayList<Integer>> lines,boolean savedInGrid) {
         JFileChooser save = new JFileChooser();
         save.setDialogTitle("Saving Project");
         save.setSelectedFile(new File(".bin"));
@@ -39,6 +39,7 @@ public class WriteObjects {
 
                     ow.writeObject(componentMap);
                     ow.writeObject(lines);
+                    ow.writeBoolean(savedInGrid);
 
                 ow.close();
             } catch (IOException e) {

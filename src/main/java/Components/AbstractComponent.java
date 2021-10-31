@@ -16,14 +16,13 @@ public abstract class AbstractComponent implements Component, Serializable {
     protected Component toldToUpdate;
     protected int toldToUpdateFromPin;
 
-
     JPanel parent;
 
     public AbstractComponent(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
         this.ID = ID;
-        this.x = x - sizeWidth / 2;
-        this.y = y - sizeHeight / 2;
+        this.x = x;
+        this.y = y;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
     }
@@ -85,9 +84,8 @@ public abstract class AbstractComponent implements Component, Serializable {
     }
 
     @Override
-    public Point inputTarget(int x, int y) {
-        return new Point(this.ID,1);
-    }
+    abstract public Point inputTarget(int x, int y);
+
 
     @Override
     public abstract void resetPinIfContain(Component ID);
@@ -97,6 +95,11 @@ public abstract class AbstractComponent implements Component, Serializable {
     @Override
     public void tellToUpdate(Component fromThisComponent) {
         this.toldToUpdate = fromThisComponent;
+    }
+
+    @Override
+    public void rotateComponent() {
+
     }
 
     @Override
