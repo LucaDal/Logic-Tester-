@@ -188,8 +188,20 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new Transistor(this, IDComponent, xPos, yPos, width, height));
             IDComponent++;
-        }
-        if (vccToSet) {
+        }else if(pnpTransistorToSet){
+            int width = 30;
+            int height = 30;
+            xPos = e.getX() - width / 2;
+            yPos = e.getY() - height / 2;
+            if (setGrid) {
+                Point gPos;
+                gPos = setInGridPosition(xPos, yPos);
+                xPos = gPos.x;
+                yPos = gPos.y;
+            }
+            componentMap.put(IDComponent, new PnpTransistor(this, IDComponent, xPos, yPos, width, height));
+            IDComponent++;
+        } else if (vccToSet) {
             int width = 15;
             int height = 15;
             xPos = e.getX() - width / 2;
@@ -202,7 +214,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new Vcc(this, IDComponent, xPos, yPos, width, height));
             IDComponent++;
-        }
+        }else
         if (gndToSet) {
             int width = 25;
             int height = 25;
@@ -217,7 +229,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             componentMap.put(IDComponent, new Gnd(this, IDComponent, xPos, yPos, width, height));
             // gndToSet = false;
             IDComponent++;
-        }
+        }else
         if (switchIsSelected) {
             int width = 22;
             int height = 28;
@@ -231,7 +243,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new Switch(this, IDComponent, xPos, yPos, width, height));
             IDComponent++;
-        }
+        }else
         if (bitDisplayIsSelected) {
             int width = 22;
             int height = 28 + 8;
@@ -245,7 +257,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new BitDisplay(this, IDComponent, xPos, yPos, width, height));//8 is the other oval for the gnd
             IDComponent++;
-        }
+        }else
         if (deleteIsSelected) { //se l'ID tornato ( ovvero l'oggetto da eliminare è Vcc ) allora è possibile settare il pin to false
             int IdReturned = checkMouseOverComponent(e);
             if (IdReturned != 0 && IdReturned <= IDComponent) {
@@ -256,7 +268,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                     IDComponent = 1;
                 }
             }
-        }
+        }else
         if (textIsSelected) {
             componentMap.put(IDComponent, new Text(this, IDComponent, e.getX(), e.getY(), 30, 20));
             Component componentReturned = componentMap.get(IDComponent);
@@ -265,7 +277,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             } else {
                 IDComponent++;
             }
-        }
+        }else
         if (selectIsSelected) {
             int IdReturned = checkMouseOverComponent(e);
             if (e.getButton() == 3) {
@@ -642,6 +654,9 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                     mark1.y = markLocation.y - 5;
                     updateOnlyMarkLocator = true;
                     repaint();
+                }else if (updateOnlyMarkLocator) {
+                    removeDot();
+                    updateOnlyMarkLocator = false;
                 }
             } else if (updateOnlyMarkLocator) {
                 removeDot();

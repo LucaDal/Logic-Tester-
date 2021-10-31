@@ -13,19 +13,19 @@ import static com.google.common.util.concurrent.Runnables.doNothing;
 
 public class Transistor implements Component, Serializable {
     @Serial
-    private static final long serialVersionUID = -8082050773708616884L;
-    private boolean A, B, C, updated, fromAtoC, BisUpdated, lastState,
+    protected static final long serialVersionUID = -8082050773708616884L;
+    protected boolean A, B, C, updated, fromAtoC, BisUpdated, lastState,
             AisUpdated, CisUpdated, isGrounded, AisGrounded, CisGrounded, groundUpdate, BisGrounded;
 
     static final int pinA = 3, pinB = 2, pinC = 9;
-    private Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
-    private int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
-    private JPanel parent;
-    private Component toldToUpdate = null;
-    private int toldToUpdateFromPin;
-    private Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinA = ArrayListMultimap.create();
-    private Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinB = ArrayListMultimap.create();
-    private Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinC = ArrayListMultimap.create();
+    protected Image img, imgAB, imgABC, imgAC, imgB, imgBC, imgC, imgA;
+    protected int sizeWidth, sizeHeight, x, y, ID, newConnectionOnPin = 0;
+    protected JPanel parent;
+    protected Component toldToUpdate = null;
+    protected int toldToUpdateFromPin;
+    protected Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinA = ArrayListMultimap.create();
+    protected Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinB = ArrayListMultimap.create();
+    protected Multimap<Integer, ComponentAndRelativePin> transistorConnectedToPinC = ArrayListMultimap.create();
 
     public Transistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         this.parent = parent;
@@ -39,7 +39,7 @@ public class Transistor implements Component, Serializable {
                 = AisGrounded = CisGrounded = groundUpdate = lastState = BisGrounded = false;
     }
 
-    private void initialize() {
+    protected void initialize() {
         BufferedImage imgb, imgbAB, imgbABC, imgbAC, imgbB, imgbBC, imgbC, imgbA;
         String path = System.getProperty("user.dir");
         try {
@@ -115,7 +115,7 @@ public class Transistor implements Component, Serializable {
         return isConnectedToAGnd(transistorConnectedToPinC, pin);
     }
 
-    private boolean isConnectedToAGnd(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
+    protected boolean isConnectedToAGnd(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
             if (toldToUpdate != temp || toldToUpdateFromPin != cp.getPin()) {
@@ -167,7 +167,7 @@ public class Transistor implements Component, Serializable {
      * @param multiMap  to check and delate the component
      * @param toCompare the component that you want to eliminate
      */
-    private void updateHashMap(Multimap<Integer, ComponentAndRelativePin> multiMap, Component toCompare, int pin) {
+    protected void updateHashMap(Multimap<Integer, ComponentAndRelativePin> multiMap, Component toCompare, int pin) {
         boolean grounded = false, containsTheComponent = false;
         ComponentAndRelativePin toDelete = null;
         for (ComponentAndRelativePin cp : multiMap.values()) {
@@ -253,7 +253,7 @@ public class Transistor implements Component, Serializable {
      * @param multiMap of the componentMap to check
      * @return true if a pin is connected to a vcc which is not grounded
      */
-    private boolean checkIfConnectedPinAreUnderVccPerPin(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
+    protected boolean checkIfConnectedPinAreUnderVccPerPin(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
         boolean flagState = false;
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
@@ -290,7 +290,7 @@ public class Transistor implements Component, Serializable {
      *
      * @param hm HashMap of the pin to check
      */
-    private void removeComponentFromHashMap(Multimap<Integer, ComponentAndRelativePin> hm) {
+    protected void removeComponentFromHashMap(Multimap<Integer, ComponentAndRelativePin> hm) {
         for (ComponentAndRelativePin cp : hm.values()) {
             Component temp = cp.getComponent();
             temp.tellToUpdate(this);
@@ -526,13 +526,13 @@ public class Transistor implements Component, Serializable {
      * @param multiMap of the component connected to the pin
      * @param state    to set to other pin
      */
-    private void updateHashMapToGroundOrNot(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean state, int pin) {
+    protected void updateHashMapToGroundOrNot(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean state, int pin) {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
             if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
                 temp.tellToUpdate(this, pin);
                 temp.setGrounded(state, cp.getPin());
-                temp.tellToUpdate(null);
+                temp.tellToUpdate(null,0);
             }
         }
     }
@@ -540,16 +540,16 @@ public class Transistor implements Component, Serializable {
     public void update() {
 
         if (BisUpdated) {
-            updateTransistor(transistorConnectedToPinB, B);
+            updateTransistor(transistorConnectedToPinB, B,pinB);
             BisUpdated = false;
         }
 
         if (AisUpdated) { //
-            updateTransistor(transistorConnectedToPinA, A);
+            updateTransistor(transistorConnectedToPinA, A, pinA);
             AisUpdated = false;
         }
         if (CisUpdated) {
-            updateTransistor(transistorConnectedToPinC, C);
+            updateTransistor(transistorConnectedToPinC, C, pinC);
             CisUpdated = false;
         }
         toldToUpdate = null;
@@ -559,14 +559,14 @@ public class Transistor implements Component, Serializable {
      * ho ibserito un if dove controllo se sa diverso da vcc
      * questo perche quando rimuovo le connessioni da un pin non voglio che mi vada a riaggiornare i pin a true
      */
-    private void updateTransistor(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean pinState) {
+    protected void updateTransistor(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean pinState,int pin) {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
             if (!temp.getType().equalsIgnoreCase("vcc")) {
-                if (temp != toldToUpdate) {
-                    temp.tellToUpdate(this);
+                if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
+                    temp.tellToUpdate(this,pin);
                     temp.setState(cp.getPin(), pinState);
-                    temp.tellToUpdate(null);
+                    temp.tellToUpdate(null,0);
                 }
             }
         }
@@ -678,7 +678,9 @@ public class Transistor implements Component, Serializable {
                 }
             }
         }
-        update();
+        if (AisUpdated || BisUpdated || CisUpdated){
+            update();
+        }
     }
 
     @Override

@@ -216,10 +216,11 @@ public class Switch implements Component, Serializable {
         if (pin == pinToChangeState && !isGrounded) {
             turnOn = !turnOn;
             this.state = state;
+            update();
         }else if(pinToChangeState == pin){
             turnOn = !turnOn;
+            update();
         }
-        update();
     }
 
     @Override
