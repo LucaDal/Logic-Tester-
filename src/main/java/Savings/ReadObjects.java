@@ -64,4 +64,7 @@ public class ReadObjects {
     public String getProjectName() {
         return open.getSelectedFile().getName();
     }
+    public String getPathProject() {
+        return open.getSelectedFile().getAbsolutePath();
+    }
 }

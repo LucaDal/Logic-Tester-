@@ -16,6 +16,7 @@ import static javax.swing.JFileChooser.APPROVE_OPTION;
 
 public class WriteObjects {
     JPanel parent;
+    JFileChooser save = new JFileChooser();
 
     public WriteObjects(JPanel parent){
         this.parent = parent;
@@ -26,7 +27,6 @@ public class WriteObjects {
      * to get Lines Hashmap call readLines();
      */
     public void saveObjects(HashMap<Integer, Component> componentMap, HashMap<Line, ArrayList<Integer>> lines,boolean savedInGrid) {
-        JFileChooser save = new JFileChooser();
         save.setDialogTitle("Saving Project");
         save.setSelectedFile(new File(".bin"));
         save.setApproveButtonText("save");
@@ -47,5 +47,11 @@ public class WriteObjects {
                 e.printStackTrace();
             }
         }
+    }
+    public String getProjectName() {
+        return save.getSelectedFile().getName();
+    }
+    public String getPathProject() {
+        return save.getSelectedFile().getAbsolutePath();
     }
 }

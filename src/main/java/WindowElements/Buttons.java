@@ -151,13 +151,14 @@ public class Buttons extends JPanel implements ActionListener {
         c.weighty = 0;
         c.gridx = 0;
         c.gridy = 8;
+        c.weighty = 1;
         add(delete, c);
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.weighty = 0;
-        c.gridx = 0;
-        c.gridy = 9;
-        c.weighty = 1;
-        add(debug, c);
+   //     c.weighty = 0;
+   //     c.gridx = 0;
+    //    c.gridy = 9;
+   //     c.weighty = 1;
+   //     add(debug, c);
     }
     private void initialize(){
         BufferedImage imgSel,imgDel,imgBit,imgSwi,imgNp,imgPn,imgVc,imgGn,imgTe;

@@ -24,12 +24,12 @@ public class DisplayFrame extends JFrame {
         add(inter, BorderLayout.CENTER);
        // setUndecorated(true);
         pack();
-        setMinimumSize(new Dimension( 200,280));//TODO definire a fine lavoro
+        setMinimumSize(new Dimension( 300,530));//TODO definire a fine lavoro
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(true);
         setVisible(true);
-        //setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
     }
 

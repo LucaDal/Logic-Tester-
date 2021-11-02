@@ -1,6 +1,7 @@
 package Components;
 
 import Savings.ReadObjects;
+import Savings.SaveAll;
 import Savings.WriteObjects;
 
 import javax.swing.*;
@@ -32,6 +33,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     private Point mark1 = new Point(-10, 0);
     private boolean updateOnlyMarkLocator = false;
     private int lastComp;
+    private String pathProject = null;
 //  store the first clicked component id and the second one
 
 
@@ -60,9 +62,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     /**
      * setted in DisplayFrame into the constructor
      * it is needed to set the name of the project and to turn on and of the grid option
+     *
      * @param menu interface
      */
-    public void setMenu(WindowElements.Menu menu){
+    public void setMenu(WindowElements.Menu menu) {
         this.menu = menu;
     }
 
@@ -172,7 +175,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        zoomFactor = 1; prevZoomFactor = 1; //reset the zoom
+        zoomFactor = 1;
+        prevZoomFactor = 1; //reset the zoom
         int xPos;
         int yPos;
         if (npnTransistorToSet) {
@@ -188,7 +192,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new Transistor(this, IDComponent, xPos, yPos, width, height));
             IDComponent++;
-        }else if(pnpTransistorToSet){
+        } else if (pnpTransistorToSet) {
             int width = 30;
             int height = 30;
             xPos = e.getX() - width / 2;
@@ -214,8 +218,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new Vcc(this, IDComponent, xPos, yPos, width, height));
             IDComponent++;
-        }else
-        if (gndToSet) {
+        } else if (gndToSet) {
             int width = 25;
             int height = 25;
             xPos = e.getX() - width / 2;
@@ -229,8 +232,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             componentMap.put(IDComponent, new Gnd(this, IDComponent, xPos, yPos, width, height));
             // gndToSet = false;
             IDComponent++;
-        }else
-        if (switchIsSelected) {
+        } else if (switchIsSelected) {
             int width = 22;
             int height = 28;
             xPos = e.getX() - width / 2;
@@ -243,8 +245,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new Switch(this, IDComponent, xPos, yPos, width, height));
             IDComponent++;
-        }else
-        if (bitDisplayIsSelected) {
+        } else if (bitDisplayIsSelected) {
             int width = 22;
             int height = 28 + 8;
             xPos = e.getX() - width / 2;
@@ -257,8 +258,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
             componentMap.put(IDComponent, new BitDisplay(this, IDComponent, xPos, yPos, width, height));//8 is the other oval for the gnd
             IDComponent++;
-        }else
-        if (deleteIsSelected) { //se l'ID tornato ( ovvero l'oggetto da eliminare è Vcc ) allora è possibile settare il pin to false
+        } else if (deleteIsSelected) { //se l'ID tornato ( ovvero l'oggetto da eliminare è Vcc ) allora è possibile settare il pin to false
             int IdReturned = checkMouseOverComponent(e);
             if (IdReturned != 0 && IdReturned <= IDComponent) {
                 deleteLine(IdReturned);
@@ -268,8 +268,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                     IDComponent = 1;
                 }
             }
-        }else
-        if (textIsSelected) {
+        } else if (textIsSelected) {
             componentMap.put(IDComponent, new Text(this, IDComponent, e.getX(), e.getY(), 30, 20));
             Component componentReturned = componentMap.get(IDComponent);
             if (componentReturned.isGrounded()) {
@@ -277,8 +276,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             } else {
                 IDComponent++;
             }
-        }else
-        if (selectIsSelected) {
+        } else if (selectIsSelected) {
             int IdReturned = checkMouseOverComponent(e);
             if (e.getButton() == 3) {
                 Component component = componentMap.get(IdReturned);
@@ -402,14 +400,15 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         //linesUpdated = true;
     }
 
-    private void setConnection(boolean state){
+    private void setConnection(boolean state) {
         this.setConnection = state;
-        if (!state){
+        if (!state) {
             lastComp = 0;
-        }else{
+        } else {
             updateOnlyMarkLocator = false;
         }
     }
+
     /**
      * used in ReleasedMouse()
      * it get the element which has moved and pass it to updateLine
@@ -442,10 +441,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
             position.y = c.getPosition().y + c.getSizeHeight() - 4;
         } else if (pin == Vcc.pinVcc) {//vcc
-            position.x = c.getPosition().x + c.getSizeWidth() / 2 +1;
-            position.y = c.getPosition().y + c.getSizeHeight() / 2 +1;
+            position.x = c.getPosition().x + c.getSizeWidth() / 2 + 1;
+            position.y = c.getPosition().y + c.getSizeHeight() / 2 + 1;
         } else if (pin == Gnd.pinGnd) {//gnd
-            position.x = c.getPosition().x + c.getSizeWidth() / 2 +1;
+            position.x = c.getPosition().x + c.getSizeWidth() / 2 + 1;
             position.y = c.getPosition().y + 3;
         } else if (pin == BitDisplay.pinHigh) {//bitDisplay
             position.x = c.getPosition().x + c.getSizeWidth() / 2;
@@ -473,7 +472,7 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             /* Aggiorno prima il transistor */
             boolean flagGoodConnections = false;
             boolean flagGoodConnections1 = false;
-            flagGoodConnections1 =firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
+            flagGoodConnections1 = firstComponent.setConnection(secondComponent, firstIDComponentPin.y, secondIDComponentPin.y, secondComponent.getState(secondIDComponentPin.y));
             flagGoodConnections = secondComponent.setConnection(firstComponent, secondIDComponentPin.y, firstIDComponentPin.y, firstComponent.getState(firstIDComponentPin.y));
             if (!flagGoodConnections || !flagGoodConnections1) {
                 deleteLine(firstIDComponentPin.x, secondIDComponentPin.x);
@@ -490,8 +489,12 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void saveObjects() {
+
         WriteObjects wo = new WriteObjects(this);
-        wo.saveObjects(componentMap, lines,setGrid);
+        wo.saveObjects(componentMap, lines, setGrid);
+        menu.setBoxText(wo.getProjectName());
+        pathProject = wo.getPathProject();
+
     }
 
     public void readObject() {
@@ -506,12 +509,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                 }
             }
             setGrid = ro.getSavedInGrid();
-            if (!setGrid){
+            if (!setGrid) {
                 menu.setGridOn();
             }
+            pathProject = ro.getPathProject();
             menu.setBoxText(ro.getProjectName());
         }
-
+        ro = null;
         select();
         repaint();
     }
@@ -648,13 +652,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             if (returnedComp != 0) {
                 Component comp = componentMap.get(returnedComp);
                 int pin = comp.inputTarget(x, y).y;
-                if (pin != 0 && pin != 6 && returnedComp != lastComp ) { //6 è il pin che ritorna il text che non voglio disegnare
+                if (pin != 0 && pin != 6 && returnedComp != lastComp) { //6 è il pin che ritorna il text che non voglio disegnare
                     Point markLocation = returnPosition(pin, comp);
                     mark1.x = markLocation.x - 5;
                     mark1.y = markLocation.y - 5;
                     updateOnlyMarkLocator = true;
                     repaint();
-                }else if (updateOnlyMarkLocator) {
+                } else if (updateOnlyMarkLocator) {
                     removeDot();
                     updateOnlyMarkLocator = false;
                 }
@@ -789,10 +793,10 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
         for (Components.Component c : componentMap.values()) {
             c.paintComponent(g);
         }
-        if(updateOnlyMarkLocator){
-            if (!setConnection){
+        if (updateOnlyMarkLocator) {
+            if (!setConnection) {
                 g.setColor(Color.GREEN);
-            }else{
+            } else {
                 g.setColor(Color.magenta);
             }
             if (mark1.x != -10) {
@@ -801,5 +805,13 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
             }
         }
 
+    }
+
+    public void saveOnSameProject() {
+        if (pathProject != null) {
+            SaveAll.saveObjectsWithPath(this, componentMap, lines, setGrid, pathProject);
+        } else {
+            saveObjects();
+        }
     }
 }

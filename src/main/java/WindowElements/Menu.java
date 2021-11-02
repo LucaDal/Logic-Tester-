@@ -11,7 +11,7 @@ import java.awt.event.ActionListener;
 public class Menu extends JMenuBar implements ActionListener {
     private final Components.Interface Interface;
     private final JPanel parent;
-    JMenuItem grid,save,open,removeAll,clearPanel,boxForText;
+    JMenuItem grid,save,open,removeAll,clearPanel,boxForText,saveAll;
     JMenu file,option;
     public Menu(Interface inter,JPanel parent){
         setBackground(Color.white);
@@ -19,7 +19,8 @@ public class Menu extends JMenuBar implements ActionListener {
         this.Interface = inter;
         grid = new JMenuItem("Turn Grid: OFF");
         file = new JMenu("File");
-        save = new JMenuItem("Save Project");
+        save = new JMenuItem("Save New Project");
+        saveAll = new JMenuItem("Save All");
         boxForText = new JMenu("");
         boxForText.setFocusPainted(false);
         boxForText.setFont(new Font("Courier New", Font.PLAIN, 12));
@@ -32,8 +33,10 @@ public class Menu extends JMenuBar implements ActionListener {
         clearPanel = new JMenuItem("Clear Panel");
         clearPanel.addActionListener(this);
         grid.addActionListener(this);
+        saveAll.addActionListener(this);
         file.add(save);
         file.add(open);
+        file.add(saveAll);
         option.add(clearPanel);
         add(file);
         add(option);
@@ -64,6 +67,8 @@ public class Menu extends JMenuBar implements ActionListener {
             }else{
                 grid.setText("Turn Grid: ON");
             }
+        }else if(saveAll.equals(source)){
+            Interface.saveOnSameProject();
         }
     }
 
