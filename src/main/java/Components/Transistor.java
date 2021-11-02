@@ -316,17 +316,16 @@ public class Transistor implements Component, Serializable {
      * the right bottom the it will return 9
      */
     public Point inputTarget(int x, int y) { //TODO fix the problem which it has be devided by three
-        int positionMouseX = ((x - this.x) / 10) + 1;
-        int positionMouseY = ((y - this.y) / 10) + 1;
-        int numberTarget = positionMouseX * positionMouseY;
-        if (numberTarget == pinB) { //B
+        int positionMouseX = x - this.x;
+        int positionMouseY = y - this.y;
+        if(positionMouseX<= 11 && positionMouseY <= 21 && positionMouseY >= 9){
             return new Point(ID, pinB);//pin B
-        }
-        if (numberTarget == pinA) { //pin A
-            return new Point(ID, pinA);
-        }
-        if (numberTarget == pinC) { //pin C
-            return new Point(ID, pinC);
+        }else if (positionMouseX >= 19){
+            if (positionMouseY <= 11){
+                return new Point(ID, pinA);
+            }else if(positionMouseY >= 19){
+                return new Point(ID, pinC);
+            }
         }
         return new Point(ID, 0);
     }
@@ -530,9 +529,11 @@ public class Transistor implements Component, Serializable {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
             if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
-                temp.tellToUpdate(this, pin);
-                temp.setGrounded(state, cp.getPin());
-                temp.tellToUpdate(null,0);
+                if(temp.getGroundedPin(cp.getPin()) != state){
+                    temp.tellToUpdate(this, pin);
+                    temp.setGrounded(state, cp.getPin());
+                    temp.tellToUpdate(null,0);
+                }
             }
         }
     }
@@ -564,9 +565,11 @@ public class Transistor implements Component, Serializable {
             Component temp = cp.getComponent();
             if (!temp.getType().equalsIgnoreCase("vcc")) {
                 if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
-                    temp.tellToUpdate(this,pin);
-                    temp.setState(cp.getPin(), pinState);
-                    temp.tellToUpdate(null,0);
+                    if (temp.getState(cp.getPin()) != pinState){
+                        temp.tellToUpdate(this,pin);
+                        temp.setState(cp.getPin(), pinState);
+                        temp.tellToUpdate(null,0);
+                    }
                 }
             }
         }
@@ -582,12 +585,8 @@ public class Transistor implements Component, Serializable {
     public void setState(int pin, boolean state) {
         if (pin == pinA) {
             if (this.A != state) {
-/*                if(!state && checkIfConnectedPinAreUnderVcc(pinA)){
-                    doNothing();
-                }else{*/
                     AisUpdated = true;
                     this.A = state;
-  //              }
                 if (!this.A && B && C && !checkIfConnectedPinAreUnderVcc(pinC)) {
                     CisUpdated = true;
                     C = false;

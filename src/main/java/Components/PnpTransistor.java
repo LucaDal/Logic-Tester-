@@ -11,7 +11,7 @@ public class PnpTransistor extends Transistor{
     public PnpTransistor(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
         super(parent, ID, x, y, sizeWidth, sizeHeight);
     }
-
+    @Override
     public boolean hasGndConnected(int pin) {
         if (pin == pinA) {
             if (!B) {
@@ -27,7 +27,7 @@ public class PnpTransistor extends Transistor{
         }
         return isConnectedToAGnd(transistorConnectedToPinC, pin);
     }
-
+    @Override
     public boolean checkIfConnectedPinAreUnderVcc(int pin) {
         if (pin == pinA) {
             if (!B) {

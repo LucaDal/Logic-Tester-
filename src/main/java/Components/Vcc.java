@@ -22,6 +22,7 @@ public class Vcc implements Component, Serializable {
     private int sizeWidth, sizeHeight, x, y, ID;
     private JPanel parent;
     private Component toldToUpdate = null;
+    private int toldToUpdateFromPin;
     private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
 
     public Vcc(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
@@ -174,13 +175,15 @@ public class Vcc implements Component, Serializable {
             for (ComponentAndRelativePin cp : connectedComponent.values()) {
                 Component temp = cp.getComponent();
                 int pinToUpdate = cp.getPin();
-                if (temp != toldToUpdate) {
-                    temp.tellToUpdate(this);
+                if (temp != toldToUpdate  || toldToUpdateFromPin != cp.getPin()) {
+                    temp.tellToUpdate(this,pinVcc);
                     temp.setState(pinToUpdate, this.state);
                 } else if (!temp.getState(pinToUpdate) && state) {
                     temp.tellToUpdate(this);
                     temp.setState(pinToUpdate, this.state);
                 }
+                temp.tellToUpdate(null,0);
+
             }
         }
         setGroundCall = false;
@@ -190,7 +193,7 @@ public class Vcc implements Component, Serializable {
         boolean flag = false;
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
-            if (toldToUpdate != temp) {
+            if (toldToUpdate != temp || toldToUpdateFromPin != cp.getPin() ) {
                 if (temp.getGroundedPin(cp.getPin())) {
                     flag = true;
                     break;
@@ -238,7 +241,8 @@ public class Vcc implements Component, Serializable {
 
     @Override
     public void tellToUpdate(Component fromThisComponent, int pin) {
-
+        this.toldToUpdateFromPin = pin;
+        this.toldToUpdate = fromThisComponent;
     }
 
     @Override
