@@ -20,6 +20,7 @@ public class Switch implements Component, Serializable {
     private Component toldToUpdate = null;
     private boolean isGrounded = false;
     private boolean turnOn = false;
+    private int toldToUpdateFromPin;
 
     private Multimap<Integer, ComponentAndRelativePin> connectedComponent = ArrayListMultimap.create();
     public Switch(JPanel parent, int ID, int x, int y, int sizeWidth, int sizeHeight) {
@@ -136,7 +137,7 @@ public class Switch implements Component, Serializable {
         boolean flag = false;
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
-            if (toldToUpdate != temp) {
+            if (toldToUpdate != temp || toldToUpdateFromPin != cp.getPin()) {
                 if (temp.getGroundedPin(cp.getPin())) {
                     flag = true;
                     break;
@@ -235,19 +236,20 @@ public class Switch implements Component, Serializable {
 
     @Override
     public void tellToUpdate(Component fromThisComponent, int pin) {
-
+        this.toldToUpdate = fromThisComponent;
+        this.toldToUpdateFromPin = pin;
     }
 
     @Override
     public void update() {
         for (ComponentAndRelativePin cp : connectedComponent.values()) {
             Component temp = cp.getComponent();
-            if (temp != toldToUpdate) {
-                temp.tellToUpdate(this);
+            if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
                 if (!temp.getGroundedPin(cp.getPin())){
+                    temp.tellToUpdate(this,pinToChangeState);
                     temp.setState(cp.getPin(), this.state);
+                    temp.tellToUpdate(null,0);
                 }
-                temp.tellToUpdate(null);
             }
         }
     }

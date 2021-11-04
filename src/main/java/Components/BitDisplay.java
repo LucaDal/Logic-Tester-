@@ -40,9 +40,9 @@ public class BitDisplay extends AbstractComponent {
         if (state) {
             g.setColor(Color.RED);
             g.drawString("1", x + sizeWidth / 2 - 4, y + sizeHeight / 2 + 4);
-            if (!groundedPinHigh){
+            if (!groundedPinHigh) {
                 g.fillOval(x + sizeWidth / 2 - 4, y, 8, 8);//upper dot
-           }else{
+            } else {
                 g.fillOval(x + sizeWidth / 2 - 4, y + sizeHeight - 9, 8, 8);//bottom dot
             }
         } else {
@@ -53,16 +53,16 @@ public class BitDisplay extends AbstractComponent {
     }
 
     public void update() {
-        updateComponent(connectedComponentHigh,pinHigh);
-        updateComponent(connectedComponentLow,pinLow);
+        updateComponent(connectedComponentHigh, pinHigh);
+        updateComponent(connectedComponentLow, pinLow);
     }
 
     @Override
     public boolean checkIfConnectedPinAreUnderVcc(int pin) {
-        if (!groundedPinLow) {
+        if (pin == pinLow && !groundedPinLow) {
             return checkIfConnectedPinAreUnderVccPerPin(connectedComponentLow, pin);
         }
-        if (!groundedPinHigh) {
+        if (pin == pinHigh && !groundedPinHigh) {
             return checkIfConnectedPinAreUnderVccPerPin(connectedComponentHigh, pin);
         }
         return false;
@@ -122,26 +122,26 @@ public class BitDisplay extends AbstractComponent {
             if (toldToUpdate != temp || toldToUpdateFromPin != cp.getPin()) {
                 if (temp.getType().equals("gnd")) {
                     return true;
-                } else {
+                } /*else {
                     temp.tellToUpdate(this, pin);
                     if (temp.hasGndConnected(cp.getPin())) {
                         temp.tellToUpdate(null, 0);
                         return true;
                     }
                     temp.tellToUpdate(null, 0);
-                }
+                }*/
             }
         }
         return false;
     }
 
-    public void updateComponent(Multimap<Integer, ComponentAndRelativePin> multiMap,int pin) {
+    public void updateComponent(Multimap<Integer, ComponentAndRelativePin> multiMap, int pin) {
         for (ComponentAndRelativePin cp : multiMap.values()) {//TODO aggiungere il tutto a quando inserirsco un nuovo pin
             Component temp = cp.getComponent();
             if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
-                temp.tellToUpdate(this,pin);
+                temp.tellToUpdate(this, pin);
                 temp.setState(cp.getPin(), this.state);
-                temp.tellToUpdate(null,0);
+                temp.tellToUpdate(null, 0);
             }
         }
     }
@@ -157,50 +157,63 @@ public class BitDisplay extends AbstractComponent {
         if (pin == pinHigh) {
             if (state) {
                 groundedPinHigh = true;
-                updateToGround(connectedComponentHigh, true,pin);
+                updateToGround(connectedComponentHigh, true, pin);
             } else {
                 if (groundedPinHigh && !hasGndConnected(pinHigh)) {
                     groundedPinHigh = false;
-                    updateToGround(connectedComponentHigh, false,pin);
+                    updateToGround(connectedComponentHigh, false, pin);
                 }
             }
         }
-
         if (pin == pinLow) {
             if (state) {
                 groundedPinLow = true;
-                updateToGround(connectedComponentLow, true,pin);
+                updateToGround(connectedComponentLow, true, pin);
             } else {
                 if (groundedPinLow && !hasGndConnected(pinLow)) {
                     groundedPinLow = false;
-                    updateToGround(connectedComponentLow, false,pin);
+                    updateToGround(connectedComponentLow, false, pin);
                 }
             }
         }
         this.isGrounded = groundedPinLow || groundedPinHigh;
 
-        if (groundedPinHigh && groundedPinLow){
+        if (!groundedPinHigh && !groundedPinLow) {
             if (this.state) {
                 setState(1, false);
             }
-        }else if(groundedPinHigh && !checkIfConnectedPinAreUnderVcc(pinLow)){
-            if (this.state) {
-                setState(1, false);
+        } else {
+            if (groundedPinHigh && !checkIfConnectedPinAreUnderVcc(pinLow)) {
+                if (this.state) {
+                    setState(1, false);
+                }
+            } else if (!groundedPinLow && checkIfConnectedPinAreUnderVcc(pinLow)) {
+                if (!this.state) {
+                    setState(1, true);
+                }
             }
-        }else if (groundedPinLow && !checkIfConnectedPinAreUnderVcc(pinHigh)){
-            if (this.state) {
+
+            if (groundedPinLow && !checkIfConnectedPinAreUnderVcc(pinHigh)) {
+                if (this.state) {
+                    setState(1, false);
+                }
+            } else if (!groundedPinHigh && checkIfConnectedPinAreUnderVcc(pinHigh)) {
+                if (!this.state) {
+                    setState(1, true);
+                }
+            } else if (!isGrounded && this.state) {
                 setState(1, false);
             }
         }
     }
 
-    private void updateToGround(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean state,int pin) {
+    private void updateToGround(Multimap<Integer, ComponentAndRelativePin> multiMap, boolean state, int pin) {
         for (ComponentAndRelativePin cp : multiMap.values()) {
             Component temp = cp.getComponent();
             if (temp != toldToUpdate || toldToUpdateFromPin != cp.getPin()) {
                 temp.tellToUpdate(this, pin);
                 temp.setGrounded(state, cp.getPin());
-                temp.tellToUpdate(null,0);
+                temp.tellToUpdate(null, 0);
 
             }
         }
@@ -226,12 +239,12 @@ public class BitDisplay extends AbstractComponent {
         if (state) {
             setState(pin, true);
         }
-        if (!groundedPinHigh) {
+        if (!groundedPinHigh && groundedPinLow) {
             if (checkIfConnectedPinAreUnderVcc(pinHigh)) {
                 setState(pin, true);
             }
         }
-        if (!groundedPinLow) {
+        if (!groundedPinLow && groundedPinHigh) {
             if (checkIfConnectedPinAreUnderVcc(pinLow)) {
                 setState(pin, true);
             }
@@ -263,10 +276,10 @@ public class BitDisplay extends AbstractComponent {
             }
         }
         if (containsTheComponent) {
-            connectedComponentLow.remove(ID.getIDComponent(),toDelete);
-            if (groundedPinLow && !hasGndConnected(pinLow)){
-                if (groundedPinLow){
-                    setGrounded(false,pinLow);
+            connectedComponentLow.remove(ID.getIDComponent(), toDelete);
+            if (groundedPinLow && !hasGndConnected(pinLow)) {
+                if (groundedPinLow) {
+                    setGrounded(false, pinLow);
                 }
             }
             if (this.state) {
@@ -281,10 +294,10 @@ public class BitDisplay extends AbstractComponent {
                 }
             }
             if (containsTheComponent) {
-                connectedComponentHigh.remove(ID.getIDComponent(),toDelete);
-                if (!hasGndConnected(pinHigh)){
-                    if (groundedPinHigh){
-                        setGrounded(false,pinHigh);
+                connectedComponentHigh.remove(ID.getIDComponent(), toDelete);
+                if (!hasGndConnected(pinHigh)) {
+                    if (groundedPinHigh) {
+                        setGrounded(false, pinHigh);
                     }
                 }
                 connectedComponentHigh.remove(ID.getIDComponent(), toDelete);
@@ -330,21 +343,22 @@ public class BitDisplay extends AbstractComponent {
 
     /**
      * this component need to be grouned to set
+     *
      * @param pin   in this function is not used
      * @param state to give to this class
      */
     @Override
     public void setState(int pin, boolean state) {//TODO fix
-        if (pin == 1){
+        if (pin == 1) {
             this.state = state;
         }
         if (pin == pinHigh && isGrounded) {
             this.state = state;
-            updateComponent(connectedComponentHigh,pin);
+            updateComponent(connectedComponentHigh, pin);
         }
         if (pin == pinLow && isGrounded) {
             this.state = state;
-            updateComponent(connectedComponentLow,pin);
+            updateComponent(connectedComponentLow, pin);
         }
     }
 

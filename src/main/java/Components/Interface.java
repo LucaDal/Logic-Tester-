@@ -283,8 +283,14 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                 if (component != null) {
                     Point IDAndPin = component.inputTarget(e.getX(), e.getY());
                     if (IDAndPin.y != 0) {
+                        try{
                         component.removeConnectionFromPins(IDAndPin.y);
                         deleteLine(IDAndPin);
+                    } catch (StackOverflowError error) {
+                        //error.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Something went wrong; if nothing has changed retry or delete the object", "Problem disconnecting", JOptionPane.WARNING_MESSAGE);
+                            System.out.println("to resolve - asking loop from transistor to transistor");
+                        }
                     }
                 }
             } else {
@@ -294,8 +300,8 @@ public class Interface extends JPanel implements MouseListener, MouseMotionListe
                         try {
                             componentReturned.setState(Switch.pinToChangeState, !componentReturned.getState(0));
                         } catch (StackOverflowError error) {
-                            error.printStackTrace();
-                            System.out.println("overflow dopo click dello switch");
+                            //error.printStackTrace();
+                            System.out.println("to resolve - asking loop from transistor to transistor");
                         }
                     } else if (componentReturned.getType().equals("text")) {
                         componentReturned.setState(0, false);
