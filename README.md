@@ -40,5 +40,6 @@ This app is still in developement so contains bugs, please don't make big projec
 
 ## Download:
 To use the app download the LogicTester.jar 
-then go into the command prompt and digit: java -jar yourAbsolutPath\LogicTester.jar
-ex. ->                                     java -jar C:\Users\Luca\Download\LogicTester.jar
+then go into the command prompt and digit:
+java -jar yourAbsolutPath\LogicTester.jar
+for exemple: java -jar C:\Users\Luca\Download\LogicTester.jar
