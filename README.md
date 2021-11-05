@@ -37,3 +37,8 @@ _to select an item use the numbers on the keyboard_
 ## Reminder:
 
 This app is still in developement so contains bugs, please don't make big projects because classes may change and it could affect old savings making them obsolete 
+
+## Download:
+To use the app download the LogicTester.jar 
+then go into the command prompt and digit: java -jar yourAbsolutPath\LogicTester.jar
+ex. ->                                     java -jar C:\Users\Luca\Download\LogicTester.jar
