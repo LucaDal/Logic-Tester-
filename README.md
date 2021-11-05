@@ -12,7 +12,7 @@ on the left you can find:
 * PNP Transistor
 * Vcc
 * GND
-* Switch - Vcc Generator (on or off)
+* Switch - Vcc Generator (ON or OFF)
 * BitDisplay - that act like a LED (1 if it is on, 0 othewise)
 * Delete - a button to remove components from the project
 
@@ -24,7 +24,7 @@ _to select an item use the numbers on the keyboard_
 
 * Connections:
   * For connecting components you need to use the **select** mode, if selected it will display a green circle on the first element to be connected, if clicked the second one will     have the violet circle;
-  * To delete a connection just right click on the pin interested
+  * To delete a connection just right click on the interested pin
 
 * Moving component:
     Drag the mouse to move a component or if no component is selected then it will move every component (don't worry if lines fade away, it's normal)
