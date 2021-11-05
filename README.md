@@ -14,6 +14,7 @@ on the left you can find:
 * GND
 * Switch - Vcc Generator (ON or OFF)
 * BitDisplay - that act like a LED (1 if it is on, 0 othewise)
+* Text - just for documentation on the panel
 * Delete - a button to remove components from the project
 
 _to select an item use the numbers on the keyboard_
