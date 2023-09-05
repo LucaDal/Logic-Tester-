@@ -35,11 +35,8 @@ _to select an item use the numbers on the keyboard_
     * you can remove the grid layout if you want, it will be saved but **WARNING**, if you deselect it and move the panel -> all return in a grid layout
 
 ## Try it:
-1. download **LogicTester.jar** from the files
-2. open the command prompt
-3. digit: java -jar yourAbsolutPath\LogicTester.jar
-    
-for exemple: java -jar C:\Users\Luca\Download\LogicTester.jar
+Just download **LogicTester.jar** from the files and run it.
+
 
 # Reminder:
 
